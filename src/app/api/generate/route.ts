@@ -3,6 +3,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { SYSTEM_PROMPT } from "../../../../prompts/system_prompt";
 
+// Vercel Serverless Function のタイムアウト設定（秒）
+// Hobby: 最大60秒, Pro: 最大300秒
+export const maxDuration = 60;
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -62,9 +66,6 @@ export async function POST(request: Request) {
 
   const { messages } = (await request.json()) as { messages: ChatMessage[] };
 
-  console.log("SYSTEM_PROMPT length:", SYSTEM_PROMPT?.length, "preview:", SYSTEM_PROMPT?.slice(0, 100));
-  console.log("messages count:", messages.length);
-
   try {
     const stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-20250514",
@@ -73,18 +74,18 @@ export async function POST(request: Request) {
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
-    // カウント増加
-    await supabase
-      .from("profiles")
-      .update({ monthly_count: currentCount + 1 })
-      .eq("id", user.id);
-
-    // 利用ログ
-    await supabase.from("usage_logs").insert({
-      user_id: user.id,
-      action: "chat_message",
-      count_used: 1,
-    });
+    // カウント増加・ログ記録はストリーム返却後にバックグラウンドで実行
+    const backgroundTasks = Promise.all([
+      supabase
+        .from("profiles")
+        .update({ monthly_count: currentCount + 1 })
+        .eq("id", user.id),
+      supabase.from("usage_logs").insert({
+        user_id: user.id,
+        action: "chat_message",
+        count_used: 1,
+      }),
+    ]);
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
@@ -97,6 +98,8 @@ export async function POST(request: Request) {
             controller.enqueue(encoder.encode(event.delta.text));
           }
         }
+        // ストリーム完了後にバックグラウンドタスクを待つ
+        await backgroundTasks;
         controller.close();
       },
     });
@@ -104,7 +107,8 @@ export async function POST(request: Request) {
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
       },
     });
   } catch (err) {
