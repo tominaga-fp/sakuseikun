@@ -42,8 +42,8 @@ interface PlanBuilderProps {
   existingPlans: PlanDocument[];
 }
 
-// ─── Section definitions (様式2準拠) ───
-const SECTIONS = [
+// ─── Section definitions (様式2完全準拠) ───
+const KEIEI_SECTIONS = [
   { id: "1-1", label: "1-1. 自社の概要" },
   { id: "1-2", label: "1-2. 売上・利益の状況" },
   { id: "1-3", label: "1-3. 経営課題" },
@@ -53,8 +53,20 @@ const SECTIONS = [
   { id: "3-2", label: "3-2. 商品・サービスの強み・弱み" },
   { id: "4-1", label: "4-1. 経営方針・目標" },
   { id: "4-2", label: "4-2. 今後のプラン" },
-  { id: "hojo", label: "補助事業計画" },
 ] as const;
+
+const HOJO_SECTIONS = [
+  { id: "hojo-name", label: "事業名（30字以内）" },
+  { id: "hojo-2-1", label: "補助2-1. 事業の概要" },
+  { id: "hojo-2-2", label: "補助2-2. 背景・目的" },
+  { id: "hojo-2-3", label: "補助2-3. 具体的な取組" },
+  { id: "hojo-3-1", label: "補助3-1. 背景・目的（生産性向上・任意）" },
+  { id: "hojo-3-2", label: "補助3-2. 具体的な取組（生産性向上・任意）" },
+  { id: "hojo-4-1", label: "補助4-1. 取組の効果" },
+  { id: "hojo-4-2", label: "補助4-2. 効果の試算" },
+] as const;
+
+const ALL_SECTIONS = [...KEIEI_SECTIONS, ...HOJO_SECTIONS];
 
 // ─── Score criteria (15 items, 5pts each = 75) ───
 const SCORE_ITEMS = [
@@ -86,21 +98,39 @@ interface ScoreEntry {
 // ─── Section parsing ───
 function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
-  // Match patterns like **1-1. ...** or ## 1-1. ... or 1-1. ...
-  const sectionRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
+
+  // ── 経営計画セクション (1-1 ~ 4-2) ──
+  // Match **1-1. ...** or ## 1-1. ... etc. before 【補助事業計画】
+  const keieiPart = text.split(/【補助事業計画】/)[0] || text;
+  const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
   let match;
-  while ((match = sectionRegex.exec(text)) !== null) {
+  while ((match = keieiRegex.exec(keieiPart)) !== null) {
     const id = match[1];
     const content = match[3].trim();
     if (content) {
       result[id] = content;
     }
   }
-  // Extract 補助事業計画 section
-  const hojoMatch = text.match(/【補助事業計画】([\s\S]*?)(?=【📊|【審査基準|$)/);
-  if (hojoMatch) {
-    result["hojo"] = hojoMatch[1].trim();
+
+  // ── 補助事業計画セクション ──
+  const hojoStart = text.indexOf("【補助事業計画】");
+  if (hojoStart === -1) return result;
+  const hojoPart = text.slice(hojoStart);
+
+  // 事業名 (30字以内)
+  const nameMatch = hojoPart.match(/\*{0,2}1\.\s*補助事業で行う事業名\*{0,2}\s*\n([\s\S]*?)(?=\n\*{0,2}\d)/);
+  if (nameMatch) result["hojo-name"] = nameMatch[1].trim();
+
+  // 補助事業の番号付きセクション: 2-1, 2-2, 2-3, 3-1, 3-2, 4-1, 4-2
+  const hojoNumRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
+  while ((match = hojoNumRegex.exec(hojoPart)) !== null) {
+    const id = match[1];
+    const content = match[3].trim();
+    if (content) {
+      result[`hojo-${id}`] = content;
+    }
   }
+
   return result;
 }
 
@@ -466,42 +496,49 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           </button>
 
           {/* Section navigation */}
-          <div style={{ fontSize: "12px", fontWeight: 600, color: COLORS.gray600, marginBottom: "8px" }}>
-            セクション一覧
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {SECTIONS.map((sec) => {
-              const hasContent = !!sections[sec.id];
-              const isActive = centerTab === "sections" && activeSectionId === sec.id;
-              return (
-                <button
-                  key={sec.id}
-                  onClick={() => {
-                    setCenterTab("sections");
-                    setActiveSectionId(sec.id);
-                  }}
-                  style={{
-                    textAlign: "left",
-                    padding: "6px 10px",
-                    borderRadius: "6px",
-                    border: "none",
-                    background: isActive ? `${COLORS.accent}15` : "transparent",
-                    color: isActive ? COLORS.accent : hasContent ? COLORS.ink : COLORS.gray400,
-                    fontSize: "12px",
-                    fontWeight: isActive ? 700 : 400,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  <span style={{ marginRight: "6px" }}>{hasContent ? "●" : "○"}</span>
-                  {sec.label}
-                </button>
-              );
-            })}
-          </div>
+          {([
+            { title: "経営計画", items: KEIEI_SECTIONS },
+            { title: "補助事業計画", items: HOJO_SECTIONS },
+          ] as const).map((group) => (
+            <div key={group.title} style={{ marginBottom: "12px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: COLORS.gray500, marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>
+                {group.title}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                {group.items.map((sec) => {
+                  const hasContent = !!sections[sec.id];
+                  const isActive = centerTab === "sections" && activeSectionId === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      onClick={() => {
+                        setCenterTab("sections");
+                        setActiveSectionId(sec.id);
+                      }}
+                      style={{
+                        textAlign: "left",
+                        padding: "5px 8px",
+                        borderRadius: "6px",
+                        border: "none",
+                        background: isActive ? `${COLORS.accent}15` : "transparent",
+                        color: isActive ? COLORS.accent : hasContent ? COLORS.ink : COLORS.gray400,
+                        fontSize: "11px",
+                        fontWeight: isActive ? 700 : 400,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      <span style={{ marginRight: "4px" }}>{hasContent ? "●" : "○"}</span>
+                      {sec.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -721,41 +758,51 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 flexShrink: 0,
               }}
             >
-              {SECTIONS.map((sec) => {
-                const hasContent = !!sections[sec.id];
-                const isActive = activeSectionId === sec.id;
-                return (
-                  <button
-                    key={sec.id}
-                    onClick={() => setActiveSectionId(sec.id)}
-                    style={{
-                      display: "block",
-                      width: "100%",
-                      textAlign: "left",
-                      padding: "8px 10px",
-                      borderRadius: "6px",
-                      border: "none",
-                      background: isActive ? `${COLORS.accent}12` : "transparent",
-                      color: isActive ? COLORS.accent : hasContent ? COLORS.ink : COLORS.gray400,
-                      fontSize: "12px",
-                      fontWeight: isActive ? 700 : 400,
-                      cursor: "pointer",
-                      marginBottom: "2px",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <span style={{ marginRight: "4px" }}>{hasContent ? "✅" : "—"}</span>
-                    {sec.label}
-                  </button>
-                );
-              })}
+              {([
+                { title: "経営計画", items: KEIEI_SECTIONS },
+                { title: "補助事業計画", items: HOJO_SECTIONS },
+              ] as const).map((group) => (
+                <div key={group.title} style={{ marginBottom: "10px" }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: COLORS.gray500, padding: "4px 10px", letterSpacing: "0.5px" }}>
+                    {group.title}
+                  </div>
+                  {group.items.map((sec) => {
+                    const hasContent = !!sections[sec.id];
+                    const isActive = activeSectionId === sec.id;
+                    return (
+                      <button
+                        key={sec.id}
+                        onClick={() => setActiveSectionId(sec.id)}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          textAlign: "left",
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          border: "none",
+                          background: isActive ? `${COLORS.accent}12` : "transparent",
+                          color: isActive ? COLORS.accent : hasContent ? COLORS.ink : COLORS.gray400,
+                          fontSize: "11px",
+                          fontWeight: isActive ? 700 : 400,
+                          cursor: "pointer",
+                          marginBottom: "1px",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        <span style={{ marginRight: "4px" }}>{hasContent ? "✅" : "—"}</span>
+                        {sec.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
 
             {/* Section content */}
             <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <h3 style={{ fontSize: "16px", fontWeight: 700, color: COLORS.ink, margin: 0 }}>
-                  {SECTIONS.find((s) => s.id === activeSectionId)?.label}
+                  {ALL_SECTIONS.find((s) => s.id === activeSectionId)?.label}
                 </h3>
                 {sections[activeSectionId] && (
                   <button
