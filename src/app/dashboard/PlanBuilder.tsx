@@ -144,47 +144,109 @@ interface SectionParts {
 
 function extractSupplementary(rawContent: string): SectionParts {
   let body = rawContent;
-  let dataGuide: string | null = null;
-  let checkItems: string | null = null;
+  const dataChunks: string[] = [];
+  const checkChunks: string[] = [];
 
-  // Extract 📊 market data supplement blocks
-  const dataMatch = body.match(/【📊[^】]*】([\s\S]*?)(?=\n【|$)/);
-  if (dataMatch) {
-    dataGuide = dataMatch[0].trim();
-    body = body.replace(dataMatch[0], "").trim();
-  }
-  // Also catch inline 【📊要データ補完】 tags and collect them
-  const inlineTags = body.match(/【📊要データ補完】[^\n]*/g);
-  if (inlineTags && inlineTags.length > 0) {
-    if (!dataGuide) dataGuide = "";
-    dataGuide = (dataGuide + "\n" + inlineTags.join("\n")).trim();
-    body = body.replace(/【📊要データ補完】[^\n]*/g, "").trim();
-  }
+  // ── Block removal: 【📊 市場データ補完ガイド】 (+ --- prefix variant) ──
+  body = body.replace(/(?:\n---\s*)?\n?【📊[^】]*】[\s\S]*?(?=\n---|\n【|$)/g, (m) => {
+    dataChunks.push(m.replace(/^[\n\s-]+/, "").trim());
+    return "";
+  });
 
-  // Extract scoring/checklist lines (項目N...点 or ✅/⚠️ lines with scores)
-  const checkLines: string[] = [];
+  // ── Block removal: 【審査基準セルフチェック】 ──
+  body = body.replace(/(?:\n---\s*)?\n?【審査基準セルフチェック】[\s\S]*$/g, (m) => {
+    checkChunks.push(m.replace(/^[\n\s-]+/, "").trim());
+    return "";
+  });
+
+  // ── Block removal: 【補完推奨事項】 ──
+  body = body.replace(/(?:\n---\s*)?\n?【補完推奨事項】[\s\S]*?(?=\n---|\n【|$)/g, (m) => {
+    dataChunks.push(m.replace(/^[\n\s-]+/, "").trim());
+    return "";
+  });
+
+  // ── Block removal: 【強化が必要な箇所】 ──
+  body = body.replace(/(?:\n---\s*)?\n?【強化が必要な箇所】[\s\S]*?(?=\n---|\n【|$)/g, (m) => {
+    checkChunks.push(m.replace(/^[\n\s-]+/, "").trim());
+    return "";
+  });
+
+  // ── Line removal: 合計: XX点/XX点 and （目安： lines ──
+  body = body.replace(/^.*合計[：:]\s*\d+.*\/\d+点.*$/gm, (m) => {
+    checkChunks.push(m.trim());
+    return "";
+  });
+  body = body.replace(/^.*（目安[：:].*$/gm, (m) => {
+    checkChunks.push(m.trim());
+    return "";
+  });
+
+  // ── Line-level scoring/checklist extraction ──
   const lines = body.split("\n");
   const filteredLines: string[] = [];
+  const scoreLines: string[] = [];
+  let inScoreTable = false;
+
   for (const line of lines) {
     const isScoreLine =
       /^\s*\|?\s*項目\d+/.test(line) ||
       /^\s*\|?\s*\d+\s*\|.*[✅⚠️❌].*\/5/.test(line) ||
       /^\s*[✅⚠️❌]\s.*\/5/.test(line) ||
-      /^\s*合計[：:]\s*\d+.*\/75/.test(line) ||
-      /^\s*\|\s*#\s*\|.*審査項目/.test(line) ||
-      /^\s*\|[-\s|]+\|$/.test(line) && checkLines.length > 0;
+      /^\s*\|\s*#\s*\|.*審査項目/.test(line);
+
+    // Table separator rows that belong to a score table
+    const isTableSep = /^\s*\|[-\s:|]+\|\s*$/.test(line);
+
     if (isScoreLine) {
-      checkLines.push(line);
+      inScoreTable = true;
+      scoreLines.push(line);
+    } else if (isTableSep && inScoreTable) {
+      scoreLines.push(line);
     } else {
+      inScoreTable = false;
       filteredLines.push(line);
     }
   }
-  if (checkLines.length > 0) {
-    checkItems = checkLines.join("\n").trim();
-    body = filteredLines.join("\n").trim();
+  if (scoreLines.length > 0) {
+    checkChunks.push(scoreLines.join("\n").trim());
   }
+  body = filteredLines.join("\n");
+
+  // ── Inline 【📊要データ補完】 tags: keep in body (rendered as yellow spans) ──
+  // Do NOT remove these — they stay in body text for highlighting
+
+  // Clean up excessive blank lines
+  body = body.replace(/\n{3,}/g, "\n\n").trim();
+
+  const dataGuide = dataChunks.length > 0 ? dataChunks.join("\n\n") : null;
+  const checkItems = checkChunks.length > 0 ? checkChunks.join("\n\n") : null;
 
   return { body, dataGuide, checkItems };
+}
+
+// ─── Render body text with inline 【📊要データ補完】 highlighted ───
+function renderBodyWithHighlights(text: string): React.ReactNode[] {
+  const parts = text.split(/(【📊要データ補完】)/g);
+  return parts.map((part, i) => {
+    if (part === "【📊要データ補完】") {
+      return (
+        <span
+          key={i}
+          style={{
+            background: "#fef9c3",
+            color: "#ca8a04",
+            padding: "1px 6px",
+            borderRadius: "4px",
+            fontSize: "12px",
+            fontWeight: 700,
+          }}
+        >
+          📊要データ補完
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
 }
 
 // ─── Section parsing ───
@@ -1108,7 +1170,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                           color: COLORS.ink,
                         }}
                       >
-                        {parts.body}
+                        {renderBodyWithHighlights(parts.body)}
                       </div>
 
                       {/* Fix 3: 📊 Market data supplement panel */}
