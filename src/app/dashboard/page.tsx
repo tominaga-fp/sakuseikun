@@ -42,7 +42,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen">
       <Header profile={profile} />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="mx-auto px-4 py-4" style={{ maxWidth: "1400px" }}>
         <PlanBuilder profile={profile} existingPlans={plans ?? []} />
       </main>
     </div>
