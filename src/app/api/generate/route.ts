@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase-server";
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
-import { SYSTEM_PROMPT, buildUserPrompt } from "../../../../prompts/system_prompt";
+import { SYSTEM_PROMPT } from "../../../../prompts/system_prompt";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -55,14 +60,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const { formData } = await request.json();
+  const { messages } = (await request.json()) as { messages: ChatMessage[] };
+
+  console.log("SYSTEM_PROMPT length:", SYSTEM_PROMPT?.length, "preview:", SYSTEM_PROMPT?.slice(0, 100));
+  console.log("messages count:", messages.length);
 
   try {
     const stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: buildUserPrompt(formData) }],
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
     // カウント増加
@@ -74,35 +82,21 @@ export async function POST(request: Request) {
     // 利用ログ
     await supabase.from("usage_logs").insert({
       user_id: user.id,
-      action: "generate_plan",
+      action: "chat_message",
       count_used: 1,
     });
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
-        let fullText = "";
         for await (const event of stream) {
           if (
             event.type === "content_block_delta" &&
             event.delta.type === "text_delta"
           ) {
-            const text = event.delta.text;
-            fullText += text;
-            controller.enqueue(encoder.encode(text));
+            controller.enqueue(encoder.encode(event.delta.text));
           }
         }
-
-        // 計画書保存
-        await supabase.from("plan_documents").insert({
-          user_id: user.id,
-          title: formData.business_name || "無題の計画書",
-          business_type: formData.business_type || "",
-          content: formData,
-          generated_text: fullText,
-          status: "completed",
-        });
-
         controller.close();
       },
     });
@@ -116,7 +110,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Generation error:", err);
     return NextResponse.json(
-      { error: "計画書の生成に失敗しました" },
+      { error: "生成に失敗しました" },
       { status: 500 }
     );
   }

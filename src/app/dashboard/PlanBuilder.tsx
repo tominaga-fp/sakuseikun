@@ -1,58 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Profile, PlanDocument } from "@/types/database";
 
-const FORM_FIELDS = [
-  {
-    key: "business_name",
-    label: "事業所名（屋号）",
-    type: "text",
-    placeholder: "例：山田商店",
-  },
-  {
-    key: "business_type",
-    label: "業種",
-    type: "text",
-    placeholder: "例：小売業、飲食業、美容業",
-  },
-  {
-    key: "business_description",
-    label: "事業概要（現在どのような事業を行っていますか？）",
-    type: "textarea",
-    placeholder: "例：地元の食材を使ったお弁当の製造・販売を行っている。開業して5年目。",
-  },
-  {
-    key: "current_challenges",
-    label: "現在の課題・困りごと",
-    type: "textarea",
-    placeholder: "例：集客が伸び悩んでいる、設備が古くなった、新規顧客の獲得が難しい",
-  },
-  {
-    key: "plan_content",
-    label: "補助金で実施したい取り組み",
-    type: "textarea",
-    placeholder: "例：ホームページ作成、チラシ作成、新メニュー開発、店舗改装",
-  },
-  {
-    key: "target_customers",
-    label: "ターゲット顧客",
-    type: "textarea",
-    placeholder: "例：30〜50代の主婦層、近隣のオフィスワーカー",
-  },
-  {
-    key: "expected_effect",
-    label: "期待される効果",
-    type: "textarea",
-    placeholder: "例：売上20%増加、新規顧客月10名獲得",
-  },
-  {
-    key: "budget",
-    label: "補助金申請予定額（万円）",
-    type: "text",
-    placeholder: "例：50",
-  },
-] as const;
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 interface PlanBuilderProps {
   profile: Profile | null;
@@ -60,68 +14,160 @@ interface PlanBuilderProps {
 }
 
 export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps) {
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [generatedText, setGeneratedText] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"new" | "history">("new");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isAdmin = profile?.role === "admin";
-  console.log("profile.role:", profile?.role, "isAdmin:", isAdmin);
   const remainingCount = (profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0);
 
-  const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleGenerate = async () => {
-    if (!isAdmin && remainingCount <= 0) {
-      setError("今月のカウント上限に達しました。");
-      return;
-    }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    const requiredFields = ["business_name", "business_type", "business_description", "plan_content"];
-    const missing = requiredFields.filter((f) => !formData[f]?.trim());
-    if (missing.length > 0) {
-      setError("事業所名、業種、事業概要、実施したい取り組みは必須です。");
-      return;
-    }
-
-    setLoading(true);
+  // 初回メッセージ: AIからの挨拶を取得
+  const startNewChat = async () => {
+    setMessages([]);
     setError("");
-    setGeneratedText("");
+    setLoading(true);
+
+    const initialMessages: ChatMessage[] = [
+      { role: "user", content: "計画書の作成を始めたいです。" },
+    ];
 
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "生成に失敗しました");
-      }
-
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (reader) {
-        let done = false;
-        while (!done) {
-          const { value, done: readerDone } = await reader.read();
-          done = readerDone;
-          if (value) {
-            setGeneratedText((prev) => prev + decoder.decode(value));
-          }
-        }
-      }
+      const assistantText = await sendToAPI(initialMessages);
+      setMessages([
+        { role: "assistant", content: assistantText },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setLoading(false);
     }
   };
+
+  // チャット開始時に自動で挨拶を取得
+  useEffect(() => {
+    if (activeTab === "new" && messages.length === 0) {
+      startNewChat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const sendToAPI = async (msgs: ChatMessage[]): Promise<string> => {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: msgs }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "送信に失敗しました");
+    }
+
+    const reader = res.body?.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    if (reader) {
+      // ストリーミング中のアシスタントメッセージを追加
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          fullText += chunk;
+          // 最後のassistantメッセージを更新
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: "assistant", content: fullText };
+            return updated;
+          });
+        }
+      }
+    }
+
+    return fullText;
+  };
+
+  const handleSend = async () => {
+    const trimmed = input.trim();
+    if (!trimmed || loading) return;
+
+    if (!isAdmin && remainingCount <= 0) {
+      setError("今月のカウント上限に達しました。");
+      return;
+    }
+
+    const userMessage: ChatMessage = { role: "user", content: trimmed };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput("");
+    setError("");
+    setLoading(true);
+
+    // テキストエリアの高さをリセット
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+
+    try {
+      await sendToAPI(newMessages);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    // 自動リサイズ
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
+  };
+
+  const copyDraft = () => {
+    // 最後のアシスタントメッセージで計画書を含むものを探す
+    const draftMessage = [...messages]
+      .reverse()
+      .find(
+        (m) =>
+          m.role === "assistant" &&
+          m.content.includes("## 1.") &&
+          m.content.includes("企業概要")
+      );
+    if (draftMessage) {
+      navigator.clipboard.writeText(draftMessage.content);
+    }
+  };
+
+  const hasDraft = messages.some(
+    (m) =>
+      m.role === "assistant" &&
+      m.content.includes("## 1.") &&
+      m.content.includes("企業概要")
+  );
 
   return (
     <div>
@@ -150,74 +196,100 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       </div>
 
       {activeTab === "new" ? (
-        <div className="space-y-6">
-          {/* 入力フォーム */}
-          <div className="card-washi">
-            <h2 className="text-lg font-bold mb-4">計画書の情報を入力</h2>
-            <div className="space-y-4">
-              {FORM_FIELDS.map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm font-medium mb-1">
-                    {field.label}
-                  </label>
-                  {field.type === "textarea" ? (
-                    <textarea
-                      value={formData[field.key] ?? ""}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shu focus:border-transparent outline-none bg-white resize-y"
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      value={formData[field.key] ?? ""}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shu focus:border-transparent outline-none bg-white"
-                    />
-                  )}
+        <div className="flex flex-col" style={{ height: "calc(100vh - 220px)" }}>
+          {/* チャットエリア */}
+          <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    msg.role === "user"
+                      ? "bg-shu text-white rounded-br-sm"
+                      : "bg-white border border-gray-200 rounded-bl-sm"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {msg.content}
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
 
-            {error && (
-              <p className="mt-4 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                {error}
-              </p>
+            {loading && messages[messages.length - 1]?.role !== "assistant" && (
+              <div className="flex justify-start">
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3">
+                  <span className="flex items-center gap-2 text-sm text-gray-400">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.1s]" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  </span>
+                </div>
+              </div>
             )}
 
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="btn-shu w-full mt-6"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  生成中...
-                </span>
-              ) : (
-                isAdmin ? "計画書を生成する" : `計画書を生成する（残り${remainingCount}カウント）`
-              )}
-            </button>
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* 生成結果 */}
-          {generatedText && (
-            <div className="card-washi">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">生成結果</h2>
-                <button
-                  onClick={() => navigator.clipboard.writeText(generatedText)}
-                  className="text-sm text-shu hover:underline"
-                >
-                  コピー
-                </button>
-              </div>
-              <div className="whitespace-pre-wrap text-sm leading-relaxed bg-white p-4 rounded-lg border">
-                {generatedText}
-              </div>
+          {/* コピーボタン（ドラフト生成後） */}
+          {hasDraft && (
+            <div className="py-2 flex justify-center">
+              <button
+                onClick={copyDraft}
+                className="text-sm text-shu hover:underline flex items-center gap-1"
+              >
+                計画書ドラフトをコピー
+              </button>
+            </div>
+          )}
+
+          {/* エラー */}
+          {error && (
+            <p className="text-red-600 text-sm bg-red-50 p-3 rounded-lg mb-2">
+              {error}
+            </p>
+          )}
+
+          {/* 入力エリア */}
+          <div className="border-t pt-3">
+            <div className="flex gap-2 items-end">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                placeholder="メッセージを入力..."
+                rows={1}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-shu focus:border-transparent outline-none bg-white resize-none text-sm"
+              />
+              <button
+                onClick={handleSend}
+                disabled={loading || !input.trim()}
+                className="btn-shu px-4 py-2 rounded-xl flex-shrink-0 disabled:opacity-50"
+              >
+                送信
+              </button>
+            </div>
+            {!isAdmin && (
+              <p className="text-xs text-gray-400 mt-1 text-right">
+                残り{remainingCount}カウント
+              </p>
+            )}
+          </div>
+
+          {/* リセットボタン */}
+          {messages.length > 0 && (
+            <div className="pt-2 flex justify-center">
+              <button
+                onClick={startNewChat}
+                disabled={loading}
+                className="text-xs text-gray-400 hover:text-gray-600 disabled:opacity-50"
+              >
+                会話をリセットして最初から
+              </button>
             </div>
           )}
         </div>
