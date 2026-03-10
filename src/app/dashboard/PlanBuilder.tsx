@@ -26,6 +26,8 @@ const COLORS = {
   yellow600: "#ca8a04",
   red100: "#fee2e2",
   red600: "#dc2626",
+  blue50: "#eff6ff",
+  blue600: "#2563eb",
 } as const;
 
 const FONT_MONO = "'IBM Plex Mono', monospace";
@@ -95,12 +97,100 @@ interface ScoreEntry {
   reason: string;
 }
 
+// ─── Fix 1: Incomplete response detection ───
+const MAX_AUTO_CONTINUE = 3;
+
+function isResponseIncomplete(text: string): boolean {
+  if (!text || text.length < 100) return false;
+  const trimmed = text.trimEnd();
+  // Ends mid-sentence (no terminal punctuation)
+  if (/[、，,]$/.test(trimmed)) return true;
+  // Ends with ellipsis or continuation markers
+  if (/\.{2,}$|…$/.test(trimmed)) return true;
+  // Ends with incomplete markdown (open table row, unclosed bold, etc.)
+  if (/\|[^|\n]*$/.test(trimmed) && !/\|\s*$/.test(trimmed)) return true;
+  if (/\*{1,2}[^*]+$/.test(trimmed.slice(-80))) return true;
+  // Ends with an open heading or bullet without content
+  if (/(?:^|\n)(?:#{1,3}|[-*])\s*$/.test(trimmed.slice(-20))) return true;
+  // Long draft that stops abruptly without reaching the self-check
+  const hasDraftStart = /【経営計画】|＜Step B/.test(text);
+  const hasSelfCheck = /【審査基準セルフチェック】|合計:.*\/75/.test(text);
+  if (hasDraftStart && !hasSelfCheck && text.length > 2000) return true;
+  return false;
+}
+
+// ─── Fix 2: SWOT / 戦略整理メモ parsing ───
+function parseStrategyMemo(text: string): string | null {
+  // Try multiple patterns the AI uses
+  const patterns = [
+    /＜Step A[：:]?\s*戦略整理メモ＞\s*\n([\s\S]*?)(?=\n---|\n＜Step B|$)/,
+    /【戦略整理メモ】\s*\n([\s\S]*?)(?=\n---|\n【|$)/,
+    /【計画書作成の方向性】\s*\n([\s\S]*?)(?=\n---|\n【|$)/,
+    /### ＜Step A[：:]?[^＞]*＞\s*\n([\s\S]*?)(?=\n---|\n###\s*＜Step B|$)/,
+  ];
+  for (const pat of patterns) {
+    const m = text.match(pat);
+    if (m && m[1].trim().length > 30) return m[1].trim();
+  }
+  return null;
+}
+
+// ─── Fix 3: Supplementary content extraction ───
+interface SectionParts {
+  body: string;
+  dataGuide: string | null; // 📊要データ補完
+  checkItems: string | null; // 📋審査基準チェック
+}
+
+function extractSupplementary(rawContent: string): SectionParts {
+  let body = rawContent;
+  let dataGuide: string | null = null;
+  let checkItems: string | null = null;
+
+  // Extract 📊 market data supplement blocks
+  const dataMatch = body.match(/【📊[^】]*】([\s\S]*?)(?=\n【|$)/);
+  if (dataMatch) {
+    dataGuide = dataMatch[0].trim();
+    body = body.replace(dataMatch[0], "").trim();
+  }
+  // Also catch inline 【📊要データ補完】 tags and collect them
+  const inlineTags = body.match(/【📊要データ補完】[^\n]*/g);
+  if (inlineTags && inlineTags.length > 0) {
+    if (!dataGuide) dataGuide = "";
+    dataGuide = (dataGuide + "\n" + inlineTags.join("\n")).trim();
+    body = body.replace(/【📊要データ補完】[^\n]*/g, "").trim();
+  }
+
+  // Extract scoring/checklist lines (項目N...点 or ✅/⚠️ lines with scores)
+  const checkLines: string[] = [];
+  const lines = body.split("\n");
+  const filteredLines: string[] = [];
+  for (const line of lines) {
+    const isScoreLine =
+      /^\s*\|?\s*項目\d+/.test(line) ||
+      /^\s*\|?\s*\d+\s*\|.*[✅⚠️❌].*\/5/.test(line) ||
+      /^\s*[✅⚠️❌]\s.*\/5/.test(line) ||
+      /^\s*合計[：:]\s*\d+.*\/75/.test(line) ||
+      /^\s*\|\s*#\s*\|.*審査項目/.test(line) ||
+      /^\s*\|[-\s|]+\|$/.test(line) && checkLines.length > 0;
+    if (isScoreLine) {
+      checkLines.push(line);
+    } else {
+      filteredLines.push(line);
+    }
+  }
+  if (checkLines.length > 0) {
+    checkItems = checkLines.join("\n").trim();
+    body = filteredLines.join("\n").trim();
+  }
+
+  return { body, dataGuide, checkItems };
+}
+
 // ─── Section parsing ───
 function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
 
-  // ── 経営計画セクション (1-1 ~ 4-2) ──
-  // Match **1-1. ...** or ## 1-1. ... etc. before 【補助事業計画】
   const keieiPart = text.split(/【補助事業計画】/)[0] || text;
   const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
   let match;
@@ -112,16 +202,13 @@ function parseSections(text: string): Record<string, string> {
     }
   }
 
-  // ── 補助事業計画セクション ──
   const hojoStart = text.indexOf("【補助事業計画】");
   if (hojoStart === -1) return result;
   const hojoPart = text.slice(hojoStart);
 
-  // 事業名 (30字以内)
   const nameMatch = hojoPart.match(/\*{0,2}1\.\s*補助事業で行う事業名\*{0,2}\s*\n([\s\S]*?)(?=\n\*{0,2}\d)/);
   if (nameMatch) result["hojo-name"] = nameMatch[1].trim();
 
-  // 補助事業の番号付きセクション: 2-1, 2-2, 2-3, 3-1, 3-2, 4-1, 4-2
   const hojoNumRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
   while ((match = hojoNumRegex.exec(hojoPart)) !== null) {
     const id = match[1];
@@ -142,7 +229,6 @@ function parseScores(text: string): ScoreEntry[] {
     reason: "",
   }));
 
-  // Look for the self-check table in assistant messages
   const tableRegex = /\|\s*(\d+)\s*\|[^|]*\|[^|]*\|\s*(✅|⚠️|❌|—)\s*\|\s*(\d+)\/5\s*\|\s*(.*?)\s*\|/g;
   let match;
   while ((match = tableRegex.exec(text)) !== null) {
@@ -157,7 +243,6 @@ function parseScores(text: string): ScoreEntry[] {
     }
   }
 
-  // Also try to extract total score
   return scores;
 }
 
@@ -177,6 +262,71 @@ function parseImprovementHints(text: string): string[] {
   return hints;
 }
 
+// ─── Collapsible panel sub-component ───
+function CollapsiblePanel({
+  label,
+  content,
+  bgColor,
+  borderColor,
+  labelColor,
+  defaultOpen = false,
+}: {
+  label: string;
+  content: string;
+  bgColor: string;
+  borderColor: string;
+  labelColor: string;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div
+      style={{
+        marginTop: "12px",
+        border: `1px solid ${borderColor}`,
+        borderRadius: "8px",
+        overflow: "hidden",
+      }}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%",
+          textAlign: "left",
+          padding: "8px 12px",
+          background: bgColor,
+          border: "none",
+          cursor: "pointer",
+          fontSize: "12px",
+          fontWeight: 700,
+          color: labelColor,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {label}
+        <span style={{ fontSize: "10px", color: COLORS.gray400 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div
+          style={{
+            padding: "12px",
+            fontSize: "12px",
+            lineHeight: "1.7",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color: COLORS.ink,
+            background: COLORS.white,
+          }}
+        >
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Component ───
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps) {
@@ -186,6 +336,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const continueCountRef = useRef(0);
 
   // Left panel inputs
   const [hpUrl, setHpUrl] = useState("");
@@ -195,6 +346,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   // Center tabs
   const [centerTab, setCenterTab] = useState<"chat" | "sections">("chat");
   const [activeSectionId, setActiveSectionId] = useState<string>("1-1");
+
+  // Fix 2: SWOT memo toggle
+  const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
   const remainingCount = (profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0);
@@ -211,6 +365,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const scores = useMemo(() => parseScores(allAssistantText), [allAssistantText]);
   const totalScore = useMemo(() => getTotalScore(scores), [scores]);
   const hints = useMemo(() => parseImprovementHints(allAssistantText), [allAssistantText]);
+  const strategyMemo = useMemo(() => parseStrategyMemo(allAssistantText), [allAssistantText]);
 
   // ─── Scroll ───
   const scrollToBottom = useCallback(() => {
@@ -221,8 +376,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // ─── API ───
-  const sendToAPI = async (msgs: ChatMessage[]): Promise<string> => {
+  // ─── API (with continuation support) ───
+  const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false): Promise<string> => {
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -236,10 +391,28 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();
-    let fullText = "";
+    let newText = "";
 
     if (reader) {
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      if (!appendToLast) {
+        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+      }
+
+      // Capture the prefix to append to
+      let prefix = "";
+      if (appendToLast) {
+        // We need the current last message content as prefix
+        setMessages((prev) => {
+          prefix = prev[prev.length - 1]?.content || "";
+          return prev;
+        });
+        // Small delay to ensure state is read
+        await new Promise((r) => setTimeout(r, 0));
+        setMessages((prev) => {
+          prefix = prev[prev.length - 1]?.content || "";
+          return prev;
+        });
+      }
 
       let done = false;
       while (!done) {
@@ -247,31 +420,69 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         done = readerDone;
         if (value) {
           const chunk = decoder.decode(value);
-          fullText += chunk;
+          newText += chunk;
+          const combined = appendToLast ? prefix + newText : newText;
           setMessages((prev) => {
             const updated = [...prev];
-            updated[updated.length - 1] = { role: "assistant", content: fullText };
+            updated[updated.length - 1] = { role: "assistant", content: combined };
             return updated;
           });
         }
       }
     }
 
-    return fullText;
+    return newText;
   };
+
+  // ─── Auto-continuation logic (Fix 1) ───
+  const attemptContinuation = useCallback(async (currentMessages: ChatMessage[]) => {
+    if (continueCountRef.current >= MAX_AUTO_CONTINUE) return;
+
+    const lastMsg = currentMessages[currentMessages.length - 1];
+    if (!lastMsg || lastMsg.role !== "assistant") return;
+    if (!isResponseIncomplete(lastMsg.content)) return;
+
+    continueCountRef.current += 1;
+
+    // Build continuation messages: include the hidden "続けてください"
+    const contMsgs: ChatMessage[] = [
+      ...currentMessages,
+      { role: "user", content: "続けてください" },
+    ];
+
+    try {
+      const newText = await sendToAPIWithAppend(contMsgs, true);
+
+      // Check if we need to continue again
+      setMessages((prev) => {
+        const updated = [...prev];
+        // The continuation response might also be incomplete
+        setTimeout(() => {
+          attemptContinuation(updated);
+        }, 500);
+        return updated;
+      });
+
+      return newText;
+    } catch {
+      // Silent fail on continuation
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ─── Init greeting ───
   const startNewChat = async () => {
     setMessages([]);
     setError("");
     setLoading(true);
+    continueCountRef.current = 0;
 
     const initialMessages: ChatMessage[] = [
       { role: "user", content: "計画書の作成を始めたいです。" },
     ];
 
     try {
-      const assistantText = await sendToAPI(initialMessages);
+      const assistantText = await sendToAPIWithAppend(initialMessages, false);
       setMessages([{ role: "assistant", content: assistantText }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -287,6 +498,26 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ─── Core send with auto-continue ───
+  const sendWithContinuation = async (newMessages: ChatMessage[]) => {
+    continueCountRef.current = 0;
+    setError("");
+    setLoading(true);
+
+    try {
+      await sendToAPIWithAppend(newMessages, false);
+      // After initial response, check for continuation
+      setMessages((prev) => {
+        setTimeout(() => attemptContinuation(prev), 500);
+        return prev;
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─── Send message ───
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -301,20 +532,12 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
-    setError("");
-    setLoading(true);
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
 
-    try {
-      await sendToAPI(newMessages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "エラーが発生しました");
-    } finally {
-      setLoading(false);
-    }
+    await sendWithContinuation(newMessages);
   };
 
   // ─── Generate all sections ───
@@ -336,16 +559,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const userMessage: ChatMessage = { role: "user", content: prompt };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setError("");
-    setLoading(true);
 
-    try {
-      await sendToAPI(newMessages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "エラーが発生しました");
-    } finally {
-      setLoading(false);
-    }
+    await sendWithContinuation(newMessages);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -501,7 +716,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             { title: "補助事業計画", items: HOJO_SECTIONS },
           ] as const).map((group) => (
             <div key={group.title} style={{ marginBottom: "12px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: COLORS.gray500, marginBottom: "4px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: COLORS.gray500, marginBottom: "4px", letterSpacing: "0.5px" }}>
                 {group.title}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
@@ -553,6 +768,53 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           overflow: "hidden",
         }}
       >
+        {/* Fix 2: SWOT / 戦略整理メモ collapsible card */}
+        {strategyMemo && (
+          <div
+            style={{
+              borderBottom: `1px solid ${COLORS.gray200}`,
+              background: `${COLORS.gold}08`,
+            }}
+          >
+            <button
+              onClick={() => setSwotOpen(!swotOpen)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "10px 16px",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: COLORS.gold,
+              }}
+            >
+              📋 戦略整理メモ / SWOT
+              <span style={{ fontSize: "11px", color: COLORS.gray400 }}>{swotOpen ? "▲ 閉じる" : "▼ 開く"}</span>
+            </button>
+            {swotOpen && (
+              <div
+                style={{
+                  padding: "0 16px 12px 16px",
+                  fontSize: "12px",
+                  lineHeight: "1.8",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  color: COLORS.ink,
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                }}
+              >
+                {strategyMemo}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Tabs */}
         <div
           style={{
@@ -798,7 +1060,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               ))}
             </div>
 
-            {/* Section content */}
+            {/* Section content (Fix 3: with supplementary panels) */}
             <div style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                 <h3 style={{ fontSize: "16px", fontWeight: 700, color: COLORS.ink, margin: 0 }}>
@@ -806,7 +1068,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 </h3>
                 {sections[activeSectionId] && (
                   <button
-                    onClick={() => copySection(sections[activeSectionId])}
+                    onClick={() => copySection(extractSupplementary(sections[activeSectionId]).body)}
                     style={{
                       padding: "4px 12px",
                       borderRadius: "6px",
@@ -832,17 +1094,47 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               </div>
 
               {sections[activeSectionId] ? (
-                <div
-                  style={{
-                    fontSize: "13px",
-                    lineHeight: "1.8",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    color: COLORS.ink,
-                  }}
-                >
-                  {sections[activeSectionId]}
-                </div>
+                (() => {
+                  const parts = extractSupplementary(sections[activeSectionId]);
+                  return (
+                    <>
+                      {/* Main body */}
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          lineHeight: "1.8",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          color: COLORS.ink,
+                        }}
+                      >
+                        {parts.body}
+                      </div>
+
+                      {/* Fix 3: 📊 Market data supplement panel */}
+                      {parts.dataGuide && (
+                        <CollapsiblePanel
+                          label="📊 市場データ補完ガイド"
+                          content={parts.dataGuide}
+                          bgColor={COLORS.yellow100}
+                          borderColor={COLORS.yellow600}
+                          labelColor={COLORS.yellow600}
+                        />
+                      )}
+
+                      {/* Fix 3: 📋 Scoring checklist panel */}
+                      {parts.checkItems && (
+                        <CollapsiblePanel
+                          label="📋 審査基準チェック"
+                          content={parts.checkItems}
+                          bgColor={COLORS.blue50}
+                          borderColor={COLORS.blue600}
+                          labelColor={COLORS.blue600}
+                        />
+                      )}
+                    </>
+                  );
+                })()
               ) : (
                 <div
                   style={{
