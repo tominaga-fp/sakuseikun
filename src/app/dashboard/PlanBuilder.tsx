@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { Profile, PlanDocument } from "@/types/database";
 
 // ─── Design tokens ───
@@ -965,10 +966,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                       padding: "10px 14px",
                       fontSize: "13px",
                       lineHeight: "1.7",
-                      whiteSpace: "pre-wrap",
                       wordBreak: "break-word",
                       ...(msg.role === "user"
                         ? {
+                            whiteSpace: "pre-wrap",
                             background: COLORS.accent,
                             color: COLORS.white,
                             borderBottomRightRadius: "4px",
@@ -980,8 +981,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                             borderBottomLeftRadius: "4px",
                           }),
                     }}
+                    className={msg.role === "assistant" ? "assistant-md" : undefined}
                   >
-                    {msg.content}
+                    {msg.role === "assistant" ? (
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                 </div>
               ))}
@@ -1494,6 +1500,20 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-6px); }
         }
+        .assistant-md p { margin: 0.5em 0; }
+        .assistant-md p:first-child { margin-top: 0; }
+        .assistant-md p:last-child { margin-bottom: 0; }
+        .assistant-md ul, .assistant-md ol { padding-left: 1.5em; margin: 0.5em 0; }
+        .assistant-md li { margin: 0.2em 0; }
+        .assistant-md table { border-collapse: collapse; width: 100%; margin: 0.5em 0; font-size: 12px; }
+        .assistant-md th { background: #f5f2eb; padding: 6px; border: 1px solid #d1d5db; font-weight: 600; text-align: left; }
+        .assistant-md td { padding: 6px; border: 1px solid #d1d5db; }
+        .assistant-md h1, .assistant-md h2, .assistant-md h3 { margin: 0.6em 0 0.3em; font-size: 14px; font-weight: 700; }
+        .assistant-md code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+        .assistant-md pre { background: #f3f4f6; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
+        .assistant-md pre code { background: none; padding: 0; }
+        .assistant-md strong { font-weight: 700; }
+        .assistant-md hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.8em 0; }
       `}</style>
     </div>
   );
