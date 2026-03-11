@@ -225,6 +225,33 @@ function extractSupplementary(rawContent: string): SectionParts {
   return { body, dataGuide, checkItems };
 }
 
+// ─── Strip scoring/check blocks from chat bubble text ───
+function stripScoringBlocks(text: string): string {
+  let t = text;
+  // 【情報充足度チェック】 block (including markdown table until next heading or end)
+  t = t.replace(/(?:\n---\s*)?\n?【情報充足度チェック】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
+  // 【審査基準セルフチェック】 block
+  t = t.replace(/(?:\n---\s*)?\n?【審査基準セルフチェック】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
+  // 【強化が必要な箇所】 block
+  t = t.replace(/(?:\n---\s*)?\n?【強化が必要な箇所】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
+  // 【📊 市場データ補完ガイド】 block
+  t = t.replace(/(?:\n---\s*)?\n?【📊[^】]*】[\s\S]*?(?=\n##|\n【[^\n]*】|$)/g, "");
+  // 合計: ○点/75点 line
+  t = t.replace(/^.*合計[：:]\s*\d*○?\d*\s*点?\s*[/／]\s*\d+点.*$/gm, "");
+  // （目安：...） line
+  t = t.replace(/^.*（目安[：:].*$/gm, "");
+  // 補助金制度や申請に関するご質問は... line (at end of scoring block)
+  t = t.replace(/^補助金制度や申請に関するご質問はこのチャットでそのまま聞いてください。\s*$/gm, "");
+  // Scoring table rows: | # | ... | ✅/⚠️/❌ | /5 |
+  t = t.replace(/^\s*\|?\s*\d+\s*\|.*[✅⚠️❌].*\/5.*$/gm, "");
+  t = t.replace(/^\s*\|\s*#\s*\|.*審査項目.*$/gm, "");
+  // Table separator rows left orphaned
+  t = t.replace(/^\s*\|[-\s:|]+\|\s*$/gm, "");
+  // Clean up excessive blank lines
+  t = t.replace(/\n{3,}/g, "\n\n").trim();
+  return t;
+}
+
 // ─── Render body text with inline 【📊要データ補完】 highlighted ───
 function renderBodyWithHighlights(text: string): React.ReactNode[] {
   const parts = text.split(/(【📊要データ補完】)/g);
@@ -984,7 +1011,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                     className={msg.role === "assistant" ? "assistant-md" : undefined}
                   >
                     {msg.role === "assistant" ? (
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      <ReactMarkdown>{stripScoringBlocks(msg.content)}</ReactMarkdown>
                     ) : (
                       msg.content
                     )}
