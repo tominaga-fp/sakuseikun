@@ -141,30 +141,16 @@ function parseStrategyMemo(text: string): string | null {
 // ─── Fix 3: Supplementary content extraction ───
 interface SectionParts {
   body: string;
-  dataGuide: string | null; // 📊要データ補完
   checkItems: string | null; // 📋審査基準チェック
 }
 
 function extractSupplementary(rawContent: string): SectionParts {
   let body = rawContent;
-  const dataChunks: string[] = [];
   const checkChunks: string[] = [];
-
-  // ── Block removal: 【📊 市場データ補完ガイド】 (+ --- prefix variant) ──
-  body = body.replace(/(?:\n---\s*)?\n?【📊[^】]*】[\s\S]*?(?=\n---|\n【|$)/g, (m) => {
-    dataChunks.push(m.replace(/^[\n\s-]+/, "").trim());
-    return "";
-  });
 
   // ── Block removal: 【審査基準セルフチェック】 ──
   body = body.replace(/(?:\n---\s*)?\n?【審査基準セルフチェック】[\s\S]*$/g, (m) => {
     checkChunks.push(m.replace(/^[\n\s-]+/, "").trim());
-    return "";
-  });
-
-  // ── Block removal: 【補完推奨事項】 ──
-  body = body.replace(/(?:\n---\s*)?\n?【補完推奨事項】[\s\S]*?(?=\n---|\n【|$)/g, (m) => {
-    dataChunks.push(m.replace(/^[\n\s-]+/, "").trim());
     return "";
   });
 
@@ -221,10 +207,9 @@ function extractSupplementary(rawContent: string): SectionParts {
   // Clean up excessive blank lines
   body = body.replace(/\n{3,}/g, "\n\n").trim();
 
-  const dataGuide = dataChunks.length > 0 ? dataChunks.join("\n\n") : null;
   const checkItems = checkChunks.length > 0 ? checkChunks.join("\n\n") : null;
 
-  return { body, dataGuide, checkItems };
+  return { body, checkItems };
 }
 
 // ─── Strip scoring/check blocks from chat bubble text ───
@@ -1331,17 +1316,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                           {parts.body}
                         </ReactMarkdown>
                       </div>
-
-                      {/* Fix 3: 📊 Market data supplement panel */}
-                      {parts.dataGuide && (
-                        <CollapsiblePanel
-                          label="📊 市場データ補完ガイド"
-                          content={parts.dataGuide}
-                          bgColor={COLORS.yellow100}
-                          borderColor={COLORS.yellow600}
-                          labelColor={COLORS.yellow600}
-                        />
-                      )}
 
                       {/* Fix 3: 📋 Scoring checklist panel */}
                       {parts.checkItems && (
