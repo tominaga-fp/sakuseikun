@@ -736,19 +736,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         setShowUpgradeModal(true);
       }
     };
-    const handleContextMenu = (e: MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      setShowUpgradeModal(true);
-    };
-
     document.addEventListener("copy", handleCopy, { capture: true });
     document.addEventListener("keydown", handleKeyDown, { capture: true });
-    document.addEventListener("contextmenu", handleContextMenu, { capture: true });
     return () => {
       document.removeEventListener("copy", handleCopy, { capture: true });
       document.removeEventListener("keydown", handleKeyDown, { capture: true });
-      document.removeEventListener("contextmenu", handleContextMenu, { capture: true });
     };
   }, [isFree]);
 
