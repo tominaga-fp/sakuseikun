@@ -404,6 +404,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [hpUrl, setHpUrl] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [hearing, setHearing] = useState("");
+  const businessTypeRef = useRef("");
 
   // Center tabs
   const [centerTab, setCenterTab] = useState<"chat" | "sections">("chat");
@@ -474,7 +475,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const saveSession = useCallback(async (msgs: ChatMessage[]) => {
     if (!profile?.id || msgs.length === 0) return;
 
-    const title = msgs.find((m) => m.role === "user")?.content.slice(0, 30) || "新しい会話";
+    const title = businessTypeRef.current.trim() || "新しい会話";
 
     if (sessionIdRef.current) {
       await supabase
@@ -663,7 +664,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const handleNewSession = async () => {
     sessionIdRef.current = null;
     setHpUrl("");
-    setBusinessType("");
+    setBusinessType(""); businessTypeRef.current = "";
     setHearing("");
     setCenterTab("chat");
     await startNewChat();
@@ -983,7 +984,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           <input
             type="text"
             value={businessType}
-            onChange={(e) => setBusinessType(e.target.value)}
+            onChange={(e) => { setBusinessType(e.target.value); businessTypeRef.current = e.target.value; }}
             placeholder="例：飲食業、券売機導入"
             style={{
               width: "100%",
