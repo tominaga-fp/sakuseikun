@@ -2,6 +2,10 @@ export interface Profile {
   id: string;
   email: string;
   display_name: string | null;
+  last_name: string | null;
+  first_name: string | null;
+  company_name: string | null;
+  user_type: "business" | "consultant";
   role: "user" | "admin" | "agent";
   is_active: boolean;
   monthly_count: number;
