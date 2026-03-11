@@ -8,7 +8,7 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [userType, setUserType] = useState<"business" | "consultant">("business");
+  const [userType, setUserType] = useState<"business" | "consultant">("consultant");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
