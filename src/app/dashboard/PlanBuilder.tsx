@@ -43,6 +43,12 @@ interface ChatMessage {
   content: string;
 }
 
+interface ChatSessionItem {
+  id: string;
+  title: string | null;
+  created_at: string;
+}
+
 interface PlanBuilderProps {
   profile: Profile | null;
   existingPlans: PlanDocument[];
@@ -411,6 +417,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const remainingCount = Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0));
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [sessionList, setSessionList] = useState<ChatSessionItem[]>([]);
 
   // ─── Derived data ───
   const allAssistantText = useMemo(() => {
@@ -425,6 +432,43 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const totalScore = useMemo(() => getTotalScore(scores), [scores]);
   const hints = useMemo(() => parseImprovementHints(allAssistantText), [allAssistantText]);
   const strategyMemo = useMemo(() => parseStrategyMemo(allAssistantText), [allAssistantText]);
+
+  // ─── Session list ───
+  const fetchSessions = useCallback(async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from("chat_sessions")
+      .select("id, title, created_at")
+      .eq("user_id", profile.id)
+      .order("updated_at", { ascending: false })
+      .limit(50);
+    if (data) setSessionList(data as ChatSessionItem[]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
+
+  const handleSwitchSession = async (sessionId: string) => {
+    if (sessionId === sessionIdRef.current || loading) return;
+    const { data } = await supabase
+      .from("chat_sessions")
+      .select("*")
+      .eq("id", sessionId)
+      .single();
+    if (data && Array.isArray(data.messages)) {
+      sessionIdRef.current = data.id;
+      setMessages(data.messages as ChatMessage[]);
+      setCenterTab("chat");
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    await supabase.from("chat_sessions").delete().eq("id", sessionId);
+    if (sessionIdRef.current === sessionId) {
+      sessionIdRef.current = null;
+      setMessages([]);
+      await startNewChat();
+    }
+    fetchSessions();
+  };
 
   // ─── Session persistence ───
   const saveSession = useCallback(async (msgs: ChatMessage[]) => {
@@ -445,8 +489,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         .single();
       if (data) sessionIdRef.current = data.id;
     }
+    fetchSessions();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.id]);
+  }, [profile?.id, fetchSessions]);
 
   const debouncedSave = useCallback((msgs: ChatMessage[]) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -611,6 +656,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     };
 
     loadOrStartChat();
+    fetchSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -835,6 +881,77 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             + 新しい会話
           </button>
         </div>
+
+        {/* Session history list */}
+        {sessionList.length > 0 && (
+          <div
+            style={{
+              maxHeight: "160px",
+              overflowY: "auto",
+              borderBottom: `1px solid ${COLORS.gray200}`,
+              padding: "4px 8px",
+            }}
+          >
+            {sessionList.map((s) => {
+              const isActive = sessionIdRef.current === s.id;
+              const dateStr = new Date(s.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
+              const label = (s.title || "新しい会話").slice(0, 20);
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "4px 6px",
+                    borderRadius: "6px",
+                    background: isActive ? `${COLORS.accent}12` : "transparent",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                  }}
+                  onClick={() => handleSwitchSession(s.id)}
+                  onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = COLORS.gray100; }}
+                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+                >
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: "11px",
+                      color: isActive ? COLORS.accent : COLORS.gray600,
+                      fontWeight: isActive ? 700 : 400,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span style={{ color: COLORS.gray400, marginRight: "4px" }}>{dateStr}</span>
+                    {label}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSession(s.id);
+                    }}
+                    style={{
+                      border: "none",
+                      background: "none",
+                      color: COLORS.gray400,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      padding: "0 2px",
+                      lineHeight: 1,
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.red600; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.gray400; }}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
           {/* HP URL */}
