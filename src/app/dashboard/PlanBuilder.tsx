@@ -703,14 +703,36 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   // ─── Consume count (first user message in session) ───
   const consumeCount = async (): Promise<boolean> => {
-    if (isAdmin || countConsumedRef.current) return true;
-    const res = await fetch("/api/consume-count", { method: "POST" });
-    if (!res.ok) {
-      setShowUpgradeModal(true);
+    // adminまたは既に消費済みならスキップ
+    if (isAdmin) return true;
+    if (countConsumedRef.current) return true;
+
+    try {
+      const res = await fetch("/api/consume-count", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        // 上限到達 → モーダル表示
+        setShowUpgradeModal(true);
+        return false;
+      }
+
+      if (!res.ok) {
+        console.error("consume-count error:", data);
+        setError(data.error || "カウント消費に失敗しました");
+        return false;
+      }
+
+      countConsumedRef.current = true;
+      return true;
+    } catch (e) {
+      console.error("consume-count fetch error:", e);
+      setError("カウント消費に失敗しました");
       return false;
     }
-    countConsumedRef.current = true;
-    return true;
   };
 
   // ─── Send message ───
@@ -718,9 +740,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    // 会話内で最初のユーザーメッセージならカウント消費
-    const hasUserMessage = messages.some((m) => m.role === "user");
-    if (!hasUserMessage) {
+    // この会話でまだカウント消費していなければ消費する
+    if (!countConsumedRef.current && !isAdmin) {
       const ok = await consumeCount();
       if (!ok) return;
     }
@@ -1786,13 +1807,12 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>
-              この操作にはベーシックプランが必要です
+              生成件数が上限に達しました
             </div>
             <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              テキストのコピー・活用機能はベーシックプラン以上でご利用いただけます。
-              アップグレードして、全機能をお使いください。
+              今月の生成件数が上限に達しました。1件追加（¥5,000）するか、新規登録の方はベーシックプランをご購入ください。
             </div>
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
               <button
                 onClick={() => setShowUpgradeModal(false)}
                 style={{
@@ -1810,6 +1830,25 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               </button>
               <button
                 onClick={() => {
+                  const extraUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
+                  window.open(extraUrl, "_blank");
+                  setShowUpgradeModal(false);
+                }}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: `1px solid ${COLORS.gold}`,
+                  background: `${COLORS.gold}10`,
+                  color: COLORS.gold,
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                1件追加（¥5,000）
+              </button>
+              <button
+                onClick={() => {
                   window.open(paymentUrl, "_blank");
                   setShowUpgradeModal(false);
                 }}
@@ -1824,7 +1863,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   cursor: "pointer",
                 }}
               >
-                アップグレードする（¥9,800）
+                ベーシックプラン（¥9,800）
               </button>
             </div>
           </div>
