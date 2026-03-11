@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import { Profile, PlanDocument } from "@/types/database";
 
 // ─── Design tokens ───
@@ -245,8 +246,8 @@ function stripScoringBlocks(text: string): string {
   // Scoring table rows: | # | ... | ✅/⚠️/❌ | /5 |
   t = t.replace(/^\s*\|?\s*\d+\s*\|.*[✅⚠️❌].*\/5.*$/gm, "");
   t = t.replace(/^\s*\|\s*#\s*\|.*審査項目.*$/gm, "");
-  // Table separator rows left orphaned
-  t = t.replace(/^\s*\|[-\s:|]+\|\s*$/gm, "");
+  // Scoring table header row: | # | 様式の該当箇所 | ...
+  t = t.replace(/^\s*\|\s*#\s*\|.*様式の該当箇所.*$/gm, "");
   // Clean up excessive blank lines
   t = t.replace(/\n{3,}/g, "\n\n").trim();
   return t;
@@ -1011,7 +1012,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                     className={msg.role === "assistant" ? "assistant-md" : undefined}
                   >
                     {msg.role === "assistant" ? (
-                      <ReactMarkdown rehypePlugins={[rehypeRaw]}>{stripScoringBlocks(msg.content)}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{stripScoringBlocks(msg.content)}</ReactMarkdown>
                     ) : (
                       msg.content
                     )}
