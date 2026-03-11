@@ -10,7 +10,7 @@ CREATE TABLE profiles (
   role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'agent')),
   is_active BOOLEAN NOT NULL DEFAULT true,
   monthly_count INTEGER NOT NULL DEFAULT 0,
-  monthly_limit INTEGER NOT NULL DEFAULT 50,
+  monthly_limit INTEGER NOT NULL DEFAULT 1,
   count_reset_at TIMESTAMPTZ NOT NULL DEFAULT (date_trunc('month', now()) + interval '1 month'),
   agent_code TEXT UNIQUE,
   referred_by UUID REFERENCES profiles(id),
