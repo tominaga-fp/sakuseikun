@@ -55,8 +55,7 @@ const KEIEI_SECTIONS = [
   { id: "1-3", label: "1-3. 経営課題" },
   { id: "2-1", label: "2-1. 市場の動向" },
   { id: "2-2", label: "2-2. 顧客ニーズ" },
-  { id: "3-1", label: "3-1. 自社の強み" },
-  { id: "3-2", label: "3-2. 商品・サービスの強み・弱み" },
+  { id: "3", label: "3. 自社の強み・弱み" },
   { id: "4-1", label: "4-1. 経営方針・目標" },
   { id: "4-2", label: "4-2. 今後のプラン" },
 ] as const;
@@ -80,9 +79,9 @@ const SCORE_ITEMS = [
   { id: 2, section: "1-3", label: "課題を機会損失金額で定量化しているか" },
   { id: 3, section: "2-1", label: "市場データを出典付きで引用しているか" },
   { id: 4, section: "2-2", label: "ターゲットを具体的に定義しているか" },
-  { id: 5, section: "3-1", label: "強みを数値根拠で示しているか" },
-  { id: 6, section: "3-2", label: "競合比較表で優位性を示しているか" },
-  { id: 7, section: "3-2", label: "弱みと補助事業が論理的に直結しているか" },
+  { id: 5, section: "3", label: "強みを数値根拠で示しているか" },
+  { id: 6, section: "3", label: "競合比較表で優位性を示しているか" },
+  { id: 7, section: "3", label: "弱みと補助事業が論理的に直結しているか" },
   { id: 8, section: "4-1", label: "KPIを因数分解して示しているか" },
   { id: 9, section: "4-2", label: "工程表に担当者・金額・設備名があるか" },
   { id: 10, section: "補2-2", label: "課題→補助事業→効果の因果関係があるか" },
@@ -284,7 +283,8 @@ function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
 
   const keieiPart = text.split(/【補助事業計画】/)[0] || text;
-  const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d-\d)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d-\d\.)|$)/g;
+  // Match both "3-1." (hyphenated) and "3." (single digit) section headings
+  const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d(?:-\d)?)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d(?:-\d)?\.)|$)/g;
   let match;
   while ((match = keieiRegex.exec(keieiPart)) !== null) {
     const id = match[1];
