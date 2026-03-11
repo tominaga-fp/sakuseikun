@@ -718,7 +718,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   const scorePercent = Math.round((totalScore / 75) * 100);
 
-  const paymentUrl = `https://example.com/payment?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
+  const paymentUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
 
   // ─── Render ───
   return (
@@ -925,7 +925,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   if (isFree) {
                     setShowUpgradeModal(true);
                   } else {
-                    window.open("https://example.com/pricing", "_blank");
+                    window.open(paymentUrl, "_blank");
                   }
                 }}
                 style={{
@@ -1689,7 +1689,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               </button>
               <button
                 onClick={() => {
-                  window.open("https://example.com/pricing", "_blank");
+                  window.open(paymentUrl, "_blank");
                   setShowUpgradeModal(false);
                 }}
                 style={{
