@@ -48,7 +48,11 @@ export async function POST(request: Request) {
   const resetAt = new Date(profile.count_reset_at);
   let currentCount = profile.monthly_count;
 
-  if (now >= resetAt) {
+  // 都度決済プラン(free/basic)はリセット対象外、継続サブスクプランのみリセット
+  const planType = profile.plan_type ?? "free";
+  const isSubscriptionPlan = planType !== "free" && planType !== "basic";
+
+  if (now >= resetAt && isSubscriptionPlan) {
     const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     await supabase
       .from("profiles")
