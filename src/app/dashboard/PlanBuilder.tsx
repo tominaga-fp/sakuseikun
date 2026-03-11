@@ -416,7 +416,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   const isAdmin = profile?.role === "admin";
   const isFree = (profile?.plan_type ?? "free") === "free" && !isAdmin;
-  const remainingCount = Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0));
+  const [remainingCount, setRemainingCount] = useState(
+    Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))
+  );
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sessionList, setSessionList] = useState<ChatSessionItem[]>([]);
@@ -460,8 +462,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       const msgs = data.messages as ChatMessage[];
       setMessages(msgs);
       setCenterTab("chat");
-      // 既存セッションにユーザーメッセージがあればカウント消費済みとみなす
-      countConsumedRef.current = msgs.some((m) => m.role === "user");
+      // 既存セッションはカウント消費済みとみなす
+      countConsumedRef.current = true;
     }
   };
 
@@ -627,6 +629,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     try {
       const assistantText = await sendToAPIWithAppend(initialMessages, false);
       setMessages([{ role: "assistant", content: assistantText }]);
+      // AIの最初の返信後にカウント消費
+      consumeCount();
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
@@ -654,7 +658,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         sessionIdRef.current = data.id;
         const msgs = data.messages as ChatMessage[];
         setMessages(msgs);
-        countConsumedRef.current = msgs.some((m) => m.role === "user");
+        countConsumedRef.current = true;
         setSessionLoaded(true);
       } else {
         setSessionLoaded(true);
@@ -668,11 +672,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   }, []);
 
   const handleNewSession = async () => {
-    // 新しい会話開始時にカウント消費
-    countConsumedRef.current = false;
-    const ok = await consumeCount();
-    if (!ok) return;
+    // 残り0件ならモーダル表示してブロック
+    if (!isAdmin && remainingCount <= 0) {
+      setShowUpgradeModal(true);
+      return;
+    }
 
+    countConsumedRef.current = false;
     sessionIdRef.current = null;
     setHpUrl("");
     setBusinessType(""); businessTypeRef.current = "";
@@ -689,6 +695,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
     try {
       await sendToAPIWithAppend(newMessages, false);
+      // AIの最初の返信後にカウント消費（同会話内で1回のみ）
+      consumeCount();
       // After initial response, check for continuation
       setMessages((prev) => {
         setTimeout(() => attemptContinuation(prev), 500);
@@ -701,37 +709,20 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     }
   };
 
-  // ─── Consume count (first user message in session) ───
-  const consumeCount = async (): Promise<boolean> => {
-    // adminまたは既に消費済みならスキップ
-    if (isAdmin) return true;
-    if (countConsumedRef.current) return true;
-
+  // ─── Consume count (called after AI's first response in a session) ───
+  const consumeCount = async () => {
+    if (isAdmin || countConsumedRef.current) return;
+    countConsumedRef.current = true;
     try {
       const res = await fetch("/api/consume-count", {
         method: "POST",
         credentials: "same-origin",
       });
-      const data = await res.json();
-
-      if (res.status === 429) {
-        // 上限到達 → モーダル表示
-        setShowUpgradeModal(true);
-        return false;
+      if (res.ok) {
+        setRemainingCount((prev) => Math.max(0, prev - 1));
       }
-
-      if (!res.ok) {
-        console.error("consume-count error:", data);
-        setError(data.error || "カウント消費に失敗しました");
-        return false;
-      }
-
-      countConsumedRef.current = true;
-      return true;
     } catch (e) {
-      console.error("consume-count fetch error:", e);
-      setError("カウント消費に失敗しました");
-      return false;
+      console.error("consume-count error:", e);
     }
   };
 
@@ -739,12 +730,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
-
-    // この会話でまだカウント消費していなければ消費する
-    if (!countConsumedRef.current && !isAdmin) {
-      const ok = await consumeCount();
-      if (!ok) return;
-    }
 
     const userMessage: ChatMessage = { role: "user", content: trimmed };
     const newMessages = [...messages, userMessage];
