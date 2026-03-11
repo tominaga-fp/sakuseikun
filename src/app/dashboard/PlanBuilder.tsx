@@ -407,7 +407,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
-  const isFree = profile?.plan_type === "free" && !isAdmin;
+  const isFree = (profile?.plan_type ?? "free") === "free" && !isAdmin;
   const remainingCount = Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0));
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -719,7 +719,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const scorePercent = Math.round((totalScore / 75) * 100);
 
   const paymentUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
-  const extraPurchaseUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
+  const extraPurchaseUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
 
   // ─── Free plan copy/keyboard/contextmenu block ───
   useEffect(() => {
@@ -729,16 +729,24 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       e.preventDefault();
       setShowUpgradeModal(true);
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        e.preventDefault();
+        setShowUpgradeModal(true);
+      }
+    };
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       setShowUpgradeModal(true);
     };
 
-    document.addEventListener("copy", handleCopy);
-    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("copy", handleCopy, true);
+    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("contextmenu", handleContextMenu, true);
     return () => {
-      document.removeEventListener("copy", handleCopy);
-      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("copy", handleCopy, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("contextmenu", handleContextMenu, true);
     };
   }, [isFree]);
 
@@ -900,15 +908,47 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             }}
           />
 
-          {/* Count display */}
+          {/* Count display + extra purchase */}
           <div style={{
-            textAlign: "center",
-            fontSize: "12px",
-            color: remainingCount <= 0 && !isAdmin ? COLORS.red600 : COLORS.gray500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
             marginBottom: "6px",
-            fontWeight: 600,
           }}>
-            残り {remainingCount}件
+            <span style={{
+              fontSize: "12px",
+              color: remainingCount <= 0 && !isAdmin ? COLORS.red600 : COLORS.gray500,
+              fontWeight: 600,
+            }}>
+              残り {remainingCount}件
+            </span>
+            {!isAdmin && (
+              <button
+                onClick={() => {
+                  if (isFree) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    window.open(extraPurchaseUrl, "_blank");
+                  }
+                }}
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: "6px",
+                  border: `1px solid ${isFree ? COLORS.gray300 : COLORS.gold}`,
+                  background: isFree ? COLORS.gray100 : `${COLORS.gold}10`,
+                  color: isFree ? COLORS.gray400 : COLORS.gold,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  cursor: isFree ? "not-allowed" : "pointer",
+                  opacity: isFree ? 0.6 : 1,
+                  transition: "all 0.15s",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                1件追加（¥5,000）
+              </button>
+            )}
           </div>
 
           {/* Generate button */}
@@ -941,35 +981,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             <div style={{ fontSize: "11px", color: COLORS.red600, textAlign: "center", marginBottom: "6px" }}>
               今月の生成件数が上限に達しました。
             </div>
-          )}
-
-          {/* 追加購入ボタン（常時表示） */}
-          {!isAdmin && (
-            <button
-              onClick={() => {
-                if (isFree) {
-                  setShowUpgradeModal(true);
-                } else {
-                  window.open(extraPurchaseUrl, "_blank");
-                }
-              }}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: "8px",
-                border: `1px solid ${isFree ? COLORS.gray300 : COLORS.gold}`,
-                background: isFree ? COLORS.gray100 : `${COLORS.gold}10`,
-                color: isFree ? COLORS.gray400 : COLORS.gold,
-                fontSize: "12px",
-                fontWeight: 700,
-                cursor: isFree ? "not-allowed" : "pointer",
-                opacity: isFree ? 0.6 : 1,
-                marginBottom: "20px",
-                transition: "all 0.15s",
-              }}
-            >
-              1件追加（¥5,000）
-            </button>
           )}
 
           {/* Section navigation */}
