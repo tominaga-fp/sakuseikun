@@ -43,12 +43,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // 月次カウントリセット判定
+  // 月次カウントリセット判定（継続サブスクプランのみ）
   const now = new Date();
   const resetAt = new Date(profile.count_reset_at);
-  let currentCount = profile.monthly_count;
-
-  // 都度決済プラン(free/basic)はリセット対象外、継続サブスクプランのみリセット
   const planType = profile.plan_type ?? "free";
   const isSubscriptionPlan = planType !== "free" && planType !== "basic";
 
@@ -58,20 +55,9 @@ export async function POST(request: Request) {
       .from("profiles")
       .update({ monthly_count: 0, count_reset_at: nextReset.toISOString() })
       .eq("id", user.id);
-    currentCount = 0;
   }
 
-  const extraCount = profile.extra_count ?? 0;
-  const remainingCount = (profile.monthly_limit - currentCount) + extraCount;
-
-  if (remainingCount <= 0 && !isAdmin) {
-    return NextResponse.json(
-      { error: "今月の生成件数が上限に達しました。追加購入はこちら →" },
-      { status: 429 }
-    );
-  }
-
-  const { messages, type = "chat" } = (await request.json()) as { messages: ChatMessage[]; type?: "chat" | "draft" };
+  const { messages } = (await request.json()) as { messages: ChatMessage[] };
 
   try {
     const stream = await anthropic.messages.stream({
@@ -81,33 +67,12 @@ export async function POST(request: Request) {
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
-    // カウント増加・ログ記録はストリーム完了後にバックグラウンドで実行
-    // type='draft' の時のみカウント消費する
-    const bgPromises: PromiseLike<unknown>[] = [];
-
-    if (type === "draft") {
-      const monthlyRemaining = profile.monthly_limit - currentCount;
-      const updateFields: Record<string, number> = { monthly_count: currentCount + 1 };
-      if (monthlyRemaining <= 0 && extraCount > 0) {
-        updateFields.extra_count = extraCount - 1;
-      }
-      bgPromises.push(
-        supabase
-          .from("profiles")
-          .update(updateFields)
-          .eq("id", user.id),
-      );
-    }
-
-    bgPromises.push(
-      supabase.from("usage_logs").insert({
-        user_id: user.id,
-        action: type === "draft" ? "draft_generation" : "chat_message",
-        count_used: type === "draft" ? 1 : 0,
-      }),
-    );
-
-    const backgroundTasks = Promise.all(bgPromises);
+    // ログ記録のみ（カウント消費は /api/consume-count で実施）
+    const backgroundTasks = supabase.from("usage_logs").insert({
+      user_id: user.id,
+      action: "chat_message",
+      count_used: 0,
+    });
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({

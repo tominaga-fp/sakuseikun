@@ -399,6 +399,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const continueCountRef = useRef(0);
   const sessionIdRef = useRef<string | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countConsumedRef = useRef(false);
 
   // Left panel inputs
   const [hpUrl, setHpUrl] = useState("");
@@ -456,8 +457,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       .single();
     if (data && Array.isArray(data.messages)) {
       sessionIdRef.current = data.id;
-      setMessages(data.messages as ChatMessage[]);
+      const msgs = data.messages as ChatMessage[];
+      setMessages(msgs);
       setCenterTab("chat");
+      // 既存セッションにユーザーメッセージがあればカウント消費済みとみなす
+      countConsumedRef.current = msgs.some((m) => m.role === "user");
     }
   };
 
@@ -516,11 +520,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   }, [messages, scrollToBottom]);
 
   // ─── API (with continuation support) ───
-  const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false, type: "chat" | "draft" = "chat"): Promise<string> => {
+  const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false): Promise<string> => {
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs, type }),
+      body: JSON.stringify({ messages: msgs }),
     });
 
     if (!res.ok) {
@@ -590,7 +594,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     ];
 
     try {
-      const newText = await sendToAPIWithAppend(contMsgs, true, "chat");
+      const newText = await sendToAPIWithAppend(contMsgs, true);
 
       // Check if we need to continue again
       setMessages((prev) => {
@@ -621,7 +625,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     ];
 
     try {
-      const assistantText = await sendToAPIWithAppend(initialMessages, false, "chat");
+      const assistantText = await sendToAPIWithAppend(initialMessages, false);
       setMessages([{ role: "assistant", content: assistantText }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -648,7 +652,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
       if (data && Array.isArray(data.messages) && data.messages.length > 0) {
         sessionIdRef.current = data.id;
-        setMessages(data.messages as ChatMessage[]);
+        const msgs = data.messages as ChatMessage[];
+        setMessages(msgs);
+        countConsumedRef.current = msgs.some((m) => m.role === "user");
         setSessionLoaded(true);
       } else {
         setSessionLoaded(true);
@@ -662,6 +668,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   }, []);
 
   const handleNewSession = async () => {
+    // 新しい会話開始時にカウント消費
+    countConsumedRef.current = false;
+    const ok = await consumeCount();
+    if (!ok) return;
+
     sessionIdRef.current = null;
     setHpUrl("");
     setBusinessType(""); businessTypeRef.current = "";
@@ -671,13 +682,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   };
 
   // ─── Core send with auto-continue ───
-  const sendWithContinuation = async (newMessages: ChatMessage[], type: "chat" | "draft" = "chat") => {
+  const sendWithContinuation = async (newMessages: ChatMessage[]) => {
     continueCountRef.current = 0;
     setError("");
     setLoading(true);
 
     try {
-      await sendToAPIWithAppend(newMessages, false, type);
+      await sendToAPIWithAppend(newMessages, false);
       // After initial response, check for continuation
       setMessages((prev) => {
         setTimeout(() => attemptContinuation(prev), 500);
@@ -690,14 +701,28 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     }
   };
 
+  // ─── Consume count (first user message in session) ───
+  const consumeCount = async (): Promise<boolean> => {
+    if (isAdmin || countConsumedRef.current) return true;
+    const res = await fetch("/api/consume-count", { method: "POST" });
+    if (!res.ok) {
+      setShowUpgradeModal(true);
+      return false;
+    }
+    countConsumedRef.current = true;
+    return true;
+  };
+
   // ─── Send message ───
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    if (!isAdmin && remainingCount <= 0) {
-      setError("今月の生成件数が上限に達しました。追加購入はこちら →");
-      return;
+    // 会話内で最初のユーザーメッセージならカウント消費
+    const hasUserMessage = messages.some((m) => m.role === "user");
+    if (!hasUserMessage) {
+      const ok = await consumeCount();
+      if (!ok) return;
     }
 
     const userMessage: ChatMessage = { role: "user", content: trimmed };
@@ -715,12 +740,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   // ─── Generate all sections ───
   const handleGenerateAll = async () => {
     if (loading) return;
-
-    if (!isAdmin && remainingCount <= 0) {
-      setError("今月の生成件数が上限に達しました。追加購入はこちら →");
-      return;
-    }
-
     setShowConfirmModal(true);
   };
 
@@ -743,7 +762,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
 
-    await sendWithContinuation(newMessages, "draft");
+    await sendWithContinuation(newMessages);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1037,34 +1056,29 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           {/* Generate button */}
           <button
             onClick={handleGenerateAll}
-            disabled={loading || (!isAdmin && remainingCount <= 0)}
+            disabled={loading}
             style={{
               width: "100%",
               padding: "10px",
               borderRadius: "8px",
-              background: loading || (!isAdmin && remainingCount <= 0) ? COLORS.gray400 : COLORS.accent,
+              background: loading ? COLORS.gray400 : COLORS.accent,
               color: COLORS.white,
               fontWeight: 700,
               fontSize: "14px",
               border: "none",
-              cursor: loading || (!isAdmin && remainingCount <= 0) ? "not-allowed" : "pointer",
-              marginBottom: remainingCount <= 0 && !isAdmin ? "4px" : "20px",
+              cursor: loading ? "not-allowed" : "pointer",
+              marginBottom: "20px",
               transition: "background 0.2s",
             }}
             onMouseEnter={(e) => {
-              if (!loading && (isAdmin || remainingCount > 0)) (e.target as HTMLButtonElement).style.background = COLORS.accentDark;
+              if (!loading) (e.target as HTMLButtonElement).style.background = COLORS.accentDark;
             }}
             onMouseLeave={(e) => {
-              if (!loading && (isAdmin || remainingCount > 0)) (e.target as HTMLButtonElement).style.background = COLORS.accent;
+              if (!loading) (e.target as HTMLButtonElement).style.background = COLORS.accent;
             }}
           >
             情報を送信
           </button>
-          {remainingCount <= 0 && !isAdmin && (
-            <div style={{ fontSize: "11px", color: COLORS.red600, textAlign: "center", marginBottom: "6px" }}>
-              今月の生成件数が上限に達しました。
-            </div>
-          )}
 
           {/* Section navigation */}
           {([
@@ -1345,27 +1359,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   送信
                 </button>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
-                {!isAdmin && (
+              {!isAdmin && (
+                <div style={{ marginTop: "6px", textAlign: "center" }}>
                   <span style={{ fontSize: "11px", color: COLORS.gray400 }}>
                     残り{remainingCount}カウント
                   </span>
-                )}
-                <button
-                  onClick={startNewChat}
-                  disabled={loading}
-                  style={{
-                    fontSize: "11px",
-                    color: COLORS.gray400,
-                    background: "none",
-                    border: "none",
-                    cursor: loading ? "not-allowed" : "pointer",
-                    marginLeft: "auto",
-                  }}
-                >
-                  会話をリセット
-                </button>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
