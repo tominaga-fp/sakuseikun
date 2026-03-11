@@ -407,8 +407,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
+  const isFree = profile?.plan_type === "free" && !isAdmin;
   const remainingCount = Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0));
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // ─── Derived data ───
   const allAssistantText = useMemo(() => {
@@ -1247,24 +1249,35 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 </h3>
                 {sections[activeSectionId] && (
                   <button
-                    onClick={() => copySection(extractSupplementary(sections[activeSectionId]).body)}
+                    onClick={() => {
+                      if (isFree) {
+                        setShowUpgradeModal(true);
+                      } else {
+                        copySection(extractSupplementary(sections[activeSectionId]).body);
+                      }
+                    }}
                     style={{
                       padding: "4px 12px",
                       borderRadius: "6px",
                       border: `1px solid ${COLORS.gray300}`,
                       background: COLORS.white,
                       fontSize: "12px",
-                      cursor: "pointer",
+                      cursor: isFree ? "not-allowed" : "pointer",
                       color: COLORS.gray600,
+                      opacity: isFree ? 0.5 : 1,
                       transition: "all 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                      (e.target as HTMLButtonElement).style.borderColor = COLORS.accent;
-                      (e.target as HTMLButtonElement).style.color = COLORS.accent;
+                      if (!isFree) {
+                        (e.target as HTMLButtonElement).style.borderColor = COLORS.accent;
+                        (e.target as HTMLButtonElement).style.color = COLORS.accent;
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      (e.target as HTMLButtonElement).style.borderColor = COLORS.gray300;
-                      (e.target as HTMLButtonElement).style.color = COLORS.gray600;
+                      if (!isFree) {
+                        (e.target as HTMLButtonElement).style.borderColor = COLORS.gray300;
+                        (e.target as HTMLButtonElement).style.color = COLORS.gray600;
+                      }
                     }}
                   >
                     コピー
@@ -1285,7 +1298,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                           lineHeight: "1.8",
                           wordBreak: "break-word",
                           color: COLORS.ink,
+                          ...(isFree ? { userSelect: "none" as const } : {}),
                         }}
+                        onContextMenu={isFree ? (e) => e.preventDefault() : undefined}
                       >
                         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                           {parts.body}
@@ -1556,6 +1571,80 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 }}
               >
                 生成する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade modal */}
+      {showUpgradeModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowUpgradeModal(false)}
+        >
+          <div
+            style={{
+              background: COLORS.white,
+              borderRadius: "12px",
+              padding: "28px 32px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>
+              有料プランでご利用いただけます
+            </div>
+            <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+              テキストのコピー機能は有料プランでご利用いただけます。
+              プランをアップグレードして、全機能をお使いください。
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowUpgradeModal(false)}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: `1px solid ${COLORS.gray300}`,
+                  background: COLORS.white,
+                  color: COLORS.gray600,
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                閉じる
+              </button>
+              <button
+                onClick={() => {
+                  window.open("https://example.com/pricing", "_blank");
+                  setShowUpgradeModal(false);
+                }}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: COLORS.accent,
+                  color: COLORS.white,
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                プランを見る
               </button>
             </div>
           </div>
