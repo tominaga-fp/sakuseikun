@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { messages } = (await request.json()) as { messages: ChatMessage[] };
+  const { messages, type = "chat" } = (await request.json()) as { messages: ChatMessage[]; type?: "chat" | "draft" };
 
   try {
     const stream = await anthropic.messages.stream({
@@ -82,24 +82,32 @@ export async function POST(request: Request) {
     });
 
     // カウント増加・ログ記録はストリーム完了後にバックグラウンドで実行
-    // monthly_limitを超えた分はextra_countから消費する
-    const monthlyRemaining = profile.monthly_limit - currentCount;
-    const updateFields: Record<string, number> = { monthly_count: currentCount + 1 };
-    if (monthlyRemaining <= 0 && extraCount > 0) {
-      updateFields.extra_count = extraCount - 1;
+    // type='draft' の時のみカウント消費する
+    const bgPromises: PromiseLike<unknown>[] = [];
+
+    if (type === "draft") {
+      const monthlyRemaining = profile.monthly_limit - currentCount;
+      const updateFields: Record<string, number> = { monthly_count: currentCount + 1 };
+      if (monthlyRemaining <= 0 && extraCount > 0) {
+        updateFields.extra_count = extraCount - 1;
+      }
+      bgPromises.push(
+        supabase
+          .from("profiles")
+          .update(updateFields)
+          .eq("id", user.id),
+      );
     }
 
-    const backgroundTasks = Promise.all([
-      supabase
-        .from("profiles")
-        .update(updateFields)
-        .eq("id", user.id),
+    bgPromises.push(
       supabase.from("usage_logs").insert({
         user_id: user.id,
-        action: "chat_message",
-        count_used: 1,
+        action: type === "draft" ? "draft_generation" : "chat_message",
+        count_used: type === "draft" ? 1 : 0,
       }),
-    ]);
+    );
+
+    const backgroundTasks = Promise.all(bgPromises);
 
     const encoder = new TextEncoder();
     const readable = new ReadableStream({

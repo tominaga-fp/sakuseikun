@@ -470,11 +470,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   }, [messages, scrollToBottom]);
 
   // ─── API (with continuation support) ───
-  const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false): Promise<string> => {
+  const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false, type: "chat" | "draft" = "chat"): Promise<string> => {
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs }),
+      body: JSON.stringify({ messages: msgs, type }),
     });
 
     if (!res.ok) {
@@ -544,7 +544,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     ];
 
     try {
-      const newText = await sendToAPIWithAppend(contMsgs, true);
+      const newText = await sendToAPIWithAppend(contMsgs, true, "chat");
 
       // Check if we need to continue again
       setMessages((prev) => {
@@ -575,7 +575,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     ];
 
     try {
-      const assistantText = await sendToAPIWithAppend(initialMessages, false);
+      const assistantText = await sendToAPIWithAppend(initialMessages, false, "chat");
       setMessages([{ role: "assistant", content: assistantText }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -624,13 +624,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   };
 
   // ─── Core send with auto-continue ───
-  const sendWithContinuation = async (newMessages: ChatMessage[]) => {
+  const sendWithContinuation = async (newMessages: ChatMessage[], type: "chat" | "draft" = "chat") => {
     continueCountRef.current = 0;
     setError("");
     setLoading(true);
 
     try {
-      await sendToAPIWithAppend(newMessages, false);
+      await sendToAPIWithAppend(newMessages, false, type);
       // After initial response, check for continuation
       setMessages((prev) => {
         setTimeout(() => attemptContinuation(prev), 500);
@@ -696,7 +696,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
 
-    await sendWithContinuation(newMessages);
+    await sendWithContinuation(newMessages, "draft");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
