@@ -419,9 +419,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [remainingCount, setRemainingCount] = useState(
     Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))
   );
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCountModal, setShowCountModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [sessionList, setSessionList] = useState<ChatSessionItem[]>([]);
+  const pendingMessageRef = useRef<string | null>(null);
 
   // ─── Derived data ───
   const allAssistantText = useMemo(() => {
@@ -629,8 +630,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     try {
       const assistantText = await sendToAPIWithAppend(initialMessages, false);
       setMessages([{ role: "assistant", content: assistantText }]);
-      // AIの最初の返信後にカウント消費
-      consumeCount();
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
@@ -695,8 +694,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
     try {
       await sendToAPIWithAppend(newMessages, false);
-      // AIの最初の返信後にカウント消費（同会話内で1回のみ）
-      consumeCount();
       // After initial response, check for continuation
       setMessages((prev) => {
         setTimeout(() => attemptContinuation(prev), 500);
@@ -709,7 +706,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     }
   };
 
-  // ─── Consume count (called after AI's first response in a session) ───
+  // ─── Consume count ───
   const consumeCount = async () => {
     if (isAdmin || countConsumedRef.current) return;
     countConsumedRef.current = true;
@@ -719,19 +716,20 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         credentials: "same-origin",
       });
       if (res.ok) {
-        setRemainingCount((prev) => Math.max(0, prev - 1));
+        const newCount = Math.max(0, remainingCount - 1);
+        setRemainingCount(newCount);
+        window.dispatchEvent(
+          new CustomEvent("remaining-count-update", { detail: newCount })
+        );
       }
     } catch (e) {
       console.error("consume-count error:", e);
     }
   };
 
-  // ─── Send message ───
-  const handleSend = async () => {
-    const trimmed = input.trim();
-    if (!trimmed || loading) return;
-
-    const userMessage: ChatMessage = { role: "user", content: trimmed };
+  // ─── Send message (with first-message count confirm) ───
+  const doSendMessage = async (text: string) => {
+    const userMessage: ChatMessage = { role: "user", content: text };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
@@ -743,14 +741,33 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     await sendWithContinuation(newMessages);
   };
 
-  // ─── Generate all sections ───
-  const handleGenerateAll = async () => {
-    if (loading) return;
-    setShowConfirmModal(true);
+  const handleSend = async () => {
+    const trimmed = input.trim();
+    if (!trimmed || loading) return;
+
+    // 初回メッセージ → 確認モーダル
+    if (!countConsumedRef.current && !isAdmin) {
+      pendingMessageRef.current = trimmed;
+      setShowCountModal(true);
+      return;
+    }
+
+    await doSendMessage(trimmed);
   };
 
-  const executeGeneration = async () => {
-    setShowConfirmModal(false);
+  const handleCountConfirm = async () => {
+    setShowCountModal(false);
+    await consumeCount();
+    const text = pendingMessageRef.current;
+    pendingMessageRef.current = null;
+    if (text) {
+      await doSendMessage(text);
+    }
+  };
+
+  // ─── Generate all sections (no confirm modal, direct send) ───
+  const handleGenerateAll = async () => {
+    if (loading) return;
 
     let prompt = "1\n\n";
     if (hpUrl.trim()) {
@@ -764,10 +781,16 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     }
     prompt += "上記の情報をもとに、不足があれば質問してください。情報が十分であれば全項目のドラフトを一気に生成してください。";
 
+    // 初回メッセージ → 確認モーダル
+    if (!countConsumedRef.current && !isAdmin) {
+      pendingMessageRef.current = prompt;
+      setShowCountModal(true);
+      return;
+    }
+
     const userMessage: ChatMessage = { role: "user", content: prompt };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-
     await sendWithContinuation(newMessages);
   };
 
@@ -1044,20 +1067,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               boxSizing: "border-box",
             }}
           />
-
-          {/* Count display */}
-          <div style={{
-            textAlign: "center",
-            marginBottom: "6px",
-          }}>
-            <span style={{
-              fontSize: "12px",
-              color: remainingCount <= 0 && !isAdmin ? COLORS.red600 : COLORS.gray500,
-              fontWeight: 600,
-            }}>
-              残り {remainingCount}件
-            </span>
-          </div>
 
           {/* Generate button */}
           <button
@@ -1365,13 +1374,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   送信
                 </button>
               </div>
-              {!isAdmin && (
-                <div style={{ marginTop: "6px", textAlign: "center" }}>
-                  <span style={{ fontSize: "11px", color: COLORS.gray400 }}>
-                    残り{remainingCount}カウント
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         ) : (
@@ -1691,8 +1693,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         )}
       </div>
 
-      {/* Confirmation modal */}
-      {showConfirmModal && (
+      {/* Count consume confirmation modal */}
+      {showCountModal && (
         <div
           style={{
             position: "fixed",
@@ -1706,7 +1708,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             justifyContent: "center",
             zIndex: 9999,
           }}
-          onClick={() => setShowConfirmModal(false)}
+          onClick={() => { setShowCountModal(false); pendingMessageRef.current = null; }}
         >
           <div
             style={{
@@ -1720,16 +1722,16 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "16px" }}>
-              生成の確認
+              カウント消費の確認
             </div>
             <div style={{ fontSize: "14px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              計画書を1件生成します。<br />
-              残り{remainingCount}件 → {remainingCount - 1}件になります。<br />
+              この会話で1件消費します。<br />
+              残り{remainingCount}件 → {Math.max(0, remainingCount - 1)}件になります。<br />
               よろしいですか？
             </div>
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               <button
-                onClick={() => setShowConfirmModal(false)}
+                onClick={() => { setShowCountModal(false); pendingMessageRef.current = null; }}
                 style={{
                   padding: "8px 20px",
                   borderRadius: "8px",
@@ -1744,7 +1746,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 キャンセル
               </button>
               <button
-                onClick={executeGeneration}
+                onClick={handleCountConfirm}
                 style={{
                   padding: "8px 20px",
                   borderRadius: "8px",
@@ -1756,7 +1758,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   cursor: "pointer",
                 }}
               >
-                生成する
+                はい
               </button>
             </div>
           </div>

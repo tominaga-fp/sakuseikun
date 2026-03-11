@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,11 +10,31 @@ export default function Header({ profile }: { profile: Profile | null }) {
   const supabase = createClient();
   const router = useRouter();
 
+  const initialCount = Math.max(
+    0,
+    ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) +
+      (profile?.extra_count ?? 0)
+  );
+  const [displayCount, setDisplayCount] = useState(initialCount);
+
+  // Listen for count updates from PlanBuilder
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<number>).detail;
+      setDisplayCount(detail);
+    };
+    window.addEventListener("remaining-count-update", handler);
+    return () => window.removeEventListener("remaining-count-update", handler);
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
   };
+
+  const isFree = (profile?.plan_type ?? "free") === "free" && profile?.role !== "admin";
+  const extraPurchaseUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
 
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50">
@@ -32,28 +53,22 @@ export default function Header({ profile }: { profile: Profile | null }) {
             </Link>
           )}
           <span className="text-sm text-gray-500">
-            残り {Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))}件
+            残り {displayCount}件
           </span>
           {profile?.role !== "admin" && (
-            (() => {
-              const isFree = (profile?.plan_type ?? "free") === "free";
-              const extraPurchaseUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
-              return (
-                <button
-                  onClick={() => {
-                    if (!isFree) window.open(extraPurchaseUrl, "_blank");
-                  }}
-                  disabled={isFree}
-                  className={`text-xs font-bold px-3 py-1 rounded-md border transition-all ${
-                    isFree
-                      ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
-                      : "border-yellow-500 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 cursor-pointer"
-                  }`}
-                >
-                  1件追加（¥5,000）
-                </button>
-              );
-            })()
+            <button
+              onClick={() => {
+                if (!isFree) window.open(extraPurchaseUrl, "_blank");
+              }}
+              disabled={isFree}
+              className={`text-xs font-bold px-3 py-1 rounded-md border transition-all ${
+                isFree
+                  ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                  : "border-yellow-500 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 cursor-pointer"
+              }`}
+            >
+              1件追加（¥5,000）
+            </button>
           )}
           <button
             onClick={handleLogout}
