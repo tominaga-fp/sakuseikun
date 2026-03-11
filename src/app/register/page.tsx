@@ -147,23 +147,23 @@ export default function RegisterPage() {
                     <input
                       type="radio"
                       name="userType"
-                      value="business"
-                      checked={userType === "business"}
-                      onChange={() => setUserType("business")}
-                      className="accent-[#c8401a]"
-                    />
-                    <span className="text-sm text-gray-700">事業者（自分で申請したい）</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="userType"
                       value="consultant"
                       checked={userType === "consultant"}
                       onChange={() => setUserType("consultant")}
                       className="accent-[#c8401a]"
                     />
-                    <span className="text-sm text-gray-700">補助金コンサルタント</span>
+                    <span className="text-sm text-gray-700">他社の申請支援</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="userType"
+                      value="business"
+                      checked={userType === "business"}
+                      onChange={() => setUserType("business")}
+                      className="accent-[#c8401a]"
+                    />
+                    <span className="text-sm text-gray-700">自社で申請</span>
                   </label>
                 </div>
               </div>
