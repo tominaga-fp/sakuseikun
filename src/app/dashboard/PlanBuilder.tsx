@@ -238,31 +238,6 @@ function stripScoringBlocks(text: string): string {
   return t;
 }
 
-// ─── Render body text with inline 【📊要データ補完】 highlighted ───
-function renderBodyWithHighlights(text: string): React.ReactNode[] {
-  const parts = text.split(/(【📊要データ補完】)/g);
-  return parts.map((part, i) => {
-    if (part === "【📊要データ補完】") {
-      return (
-        <span
-          key={i}
-          style={{
-            background: "#fef9c3",
-            color: "#ca8a04",
-            padding: "1px 6px",
-            borderRadius: "4px",
-            fontSize: "12px",
-            fontWeight: 700,
-          }}
-        >
-          📊要データ補完
-        </span>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
-
 // ─── Section parsing ───
 function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
