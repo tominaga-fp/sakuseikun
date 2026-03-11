@@ -719,6 +719,28 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const scorePercent = Math.round((totalScore / 75) * 100);
 
   const paymentUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
+  const extraPurchaseUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
+
+  // ─── Free plan copy/keyboard/contextmenu block ───
+  useEffect(() => {
+    if (!isFree) return;
+
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      setShowUpgradeModal(true);
+    };
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      setShowUpgradeModal(true);
+    };
+
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, [isFree]);
 
   // ─── Render ───
   return (
@@ -916,33 +938,38 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             全項目を生成
           </button>
           {remainingCount <= 0 && !isAdmin && (
-            <div style={{ textAlign: "center", marginBottom: "20px" }}>
-              <div style={{ fontSize: "11px", color: COLORS.red600, marginBottom: "6px" }}>
-                今月の生成件数が上限に達しました。
-              </div>
-              <button
-                onClick={() => {
-                  if (isFree) {
-                    setShowUpgradeModal(true);
-                  } else {
-                    window.open(paymentUrl, "_blank");
-                  }
-                }}
-                style={{
-                  padding: "6px 16px",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: isFree ? COLORS.gray400 : COLORS.accent,
-                  color: COLORS.white,
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  cursor: isFree ? "not-allowed" : "pointer",
-                  opacity: isFree ? 0.6 : 1,
-                }}
-              >
-                追加購入はこちら →
-              </button>
+            <div style={{ fontSize: "11px", color: COLORS.red600, textAlign: "center", marginBottom: "6px" }}>
+              今月の生成件数が上限に達しました。
             </div>
+          )}
+
+          {/* 追加購入ボタン（常時表示） */}
+          {!isAdmin && (
+            <button
+              onClick={() => {
+                if (isFree) {
+                  setShowUpgradeModal(true);
+                } else {
+                  window.open(extraPurchaseUrl, "_blank");
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "8px",
+                border: `1px solid ${isFree ? COLORS.gray300 : COLORS.gold}`,
+                background: isFree ? COLORS.gray100 : `${COLORS.gold}10`,
+                color: isFree ? COLORS.gray400 : COLORS.gold,
+                fontSize: "12px",
+                fontWeight: 700,
+                cursor: isFree ? "not-allowed" : "pointer",
+                opacity: isFree ? 0.6 : 1,
+                marginBottom: "20px",
+                transition: "all 0.15s",
+              }}
+            >
+              1件追加（¥5,000）
+            </button>
           )}
 
           {/* Section navigation */}
@@ -1665,11 +1692,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>
-              有料プランでご利用いただけます
+              この操作にはベーシックプランが必要です
             </div>
             <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              テキストのコピー機能は有料プランでご利用いただけます。
-              プランをアップグレードして、全機能をお使いください。
+              テキストのコピー・活用機能はベーシックプラン以上でご利用いただけます。
+              アップグレードして、全機能をお使いください。
             </div>
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               <button
@@ -1703,7 +1730,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   cursor: "pointer",
                 }}
               >
-                プランを見る
+                アップグレードする（¥9,800）
               </button>
             </div>
           </div>
