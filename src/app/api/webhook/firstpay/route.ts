@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     console.log('FirstPay webhook受信:', JSON.stringify(body))
 
-    const email = body.email || body.buyer_email || body.mail
+    const email = body.purchaser?.email
     if (!email) {
       return NextResponse.json({ error: 'メールなし' }, { status: 400 })
     }
