@@ -718,14 +718,54 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   const scorePercent = Math.round((totalScore / 75) * 100);
 
+  const paymentUrl = `https://example.com/payment?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
+
   // ─── Render ───
   return (
+    <>
+    {isFree && (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 20px",
+          marginBottom: "8px",
+          borderRadius: "10px",
+          background: `linear-gradient(90deg, ${COLORS.gold}18, ${COLORS.gold}08)`,
+          border: `1px solid ${COLORS.gold}40`,
+          fontFamily: FONT_BODY,
+        }}
+      >
+        <span style={{ fontSize: "13px", color: COLORS.gray700 }}>
+          お試しプランをご利用中です。コピー・活用にはベーシックプランが必要です。
+        </span>
+        <button
+          onClick={() => window.open(paymentUrl, "_blank")}
+          style={{
+            padding: "7px 18px",
+            borderRadius: "8px",
+            border: "none",
+            background: COLORS.accent,
+            color: COLORS.white,
+            fontWeight: 700,
+            fontSize: "12px",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+            marginLeft: "16px",
+          }}
+        >
+          ベーシックプランへアップグレード（¥9,800）
+        </button>
+      </div>
+    )}
     <div
       style={{
         display: "grid",
         gridTemplateColumns: "280px 1fr 300px",
         gap: "16px",
-        height: "calc(100vh - 100px)",
+        height: isFree ? "calc(100vh - 150px)" : "calc(100vh - 100px)",
         fontFamily: FONT_BODY,
         color: COLORS.ink,
       }}
@@ -1706,5 +1746,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         .section-md hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.6em 0; }
       `}</style>
     </div>
+    </>
   );
 }
