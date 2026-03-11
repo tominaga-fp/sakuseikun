@@ -876,13 +876,32 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             全項目を生成
           </button>
           {remainingCount <= 0 && !isAdmin && (
-            <div style={{
-              textAlign: "center",
-              fontSize: "11px",
-              color: COLORS.red600,
-              marginBottom: "20px",
-            }}>
-              今月の生成件数が上限に達しました。追加購入はこちら →
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <div style={{ fontSize: "11px", color: COLORS.red600, marginBottom: "6px" }}>
+                今月の生成件数が上限に達しました。
+              </div>
+              <button
+                onClick={() => {
+                  if (isFree) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    window.open("https://example.com/pricing", "_blank");
+                  }
+                }}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: "6px",
+                  border: "none",
+                  background: isFree ? COLORS.gray400 : COLORS.accent,
+                  color: COLORS.white,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  cursor: isFree ? "not-allowed" : "pointer",
+                  opacity: isFree ? 0.6 : 1,
+                }}
+              >
+                追加購入はこちら →
+              </button>
             </div>
           )}
 
