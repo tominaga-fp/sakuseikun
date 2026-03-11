@@ -1319,15 +1319,17 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                     <>
                       {/* Main body */}
                       <div
+                        className="section-md"
                         style={{
                           fontSize: "13px",
                           lineHeight: "1.8",
-                          whiteSpace: "pre-wrap",
                           wordBreak: "break-word",
                           color: COLORS.ink,
                         }}
                       >
-                        {renderBodyWithHighlights(parts.body)}
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                          {parts.body}
+                        </ReactMarkdown>
                       </div>
 
                       {/* Fix 3: 📊 Market data supplement panel */}
@@ -1632,6 +1634,19 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         .assistant-md pre code { background: none; padding: 0; }
         .assistant-md strong { font-weight: 700; }
         .assistant-md hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.8em 0; }
+        .section-md p { margin: 0.4em 0; }
+        .section-md p:first-child { margin-top: 0; }
+        .section-md p:last-child { margin-bottom: 0; }
+        .section-md ul, .section-md ol { padding-left: 1.5em; margin: 0.4em 0; }
+        .section-md li { margin: 0.2em 0; }
+        .section-md table { border-collapse: collapse; width: 100%; margin: 0.5em 0; font-size: 12px; }
+        .section-md th { background: #f5f2eb; padding: 6px; border: 1px solid #ccc; text-align: left; }
+        .section-md td { padding: 6px; border: 1px solid #ccc; }
+        .section-md h1, .section-md h2, .section-md h3, .section-md strong { font-weight: inherit; font-size: inherit; }
+        .section-md code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+        .section-md pre { background: #f3f4f6; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
+        .section-md pre code { background: none; padding: 0; }
+        .section-md hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.6em 0; }
       `}</style>
     </div>
   );
