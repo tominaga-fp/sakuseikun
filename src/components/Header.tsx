@@ -32,8 +32,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
             </Link>
           )}
           <span className="text-sm text-gray-500">
-            残り {profile?.monthly_limit ?? 0 - (profile?.monthly_count ?? 0)}/
-            {profile?.monthly_limit ?? 50} カウント
+            残り {Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))}件
           </span>
           <button
             onClick={handleLogout}

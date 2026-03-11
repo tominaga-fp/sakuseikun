@@ -57,9 +57,12 @@ export async function POST(request: Request) {
     currentCount = 0;
   }
 
-  if (currentCount >= profile.monthly_limit && !isAdmin) {
+  const extraCount = profile.extra_count ?? 0;
+  const remainingCount = (profile.monthly_limit - currentCount) + extraCount;
+
+  if (remainingCount <= 0 && !isAdmin) {
     return NextResponse.json(
-      { error: "今月のカウント上限に達しました" },
+      { error: "今月の生成件数が上限に達しました。追加購入はこちら →" },
       { status: 429 }
     );
   }
@@ -74,11 +77,18 @@ export async function POST(request: Request) {
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
-    // カウント増加・ログ記録はストリーム返却後にバックグラウンドで実行
+    // カウント増加・ログ記録はストリーム完了後にバックグラウンドで実行
+    // monthly_limitを超えた分はextra_countから消費する
+    const monthlyRemaining = profile.monthly_limit - currentCount;
+    const updateFields: Record<string, number> = { monthly_count: currentCount + 1 };
+    if (monthlyRemaining <= 0 && extraCount > 0) {
+      updateFields.extra_count = extraCount - 1;
+    }
+
     const backgroundTasks = Promise.all([
       supabase
         .from("profiles")
-        .update({ monthly_count: currentCount + 1 })
+        .update(updateFields)
         .eq("id", user.id),
       supabase.from("usage_logs").insert({
         user_id: user.id,

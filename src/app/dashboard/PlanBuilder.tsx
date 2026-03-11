@@ -413,7 +413,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
-  const remainingCount = (profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0);
+  const remainingCount = Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0));
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // ─── Derived data ───
   const allAssistantText = useMemo(() => {
@@ -586,7 +587,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     if (!trimmed || loading) return;
 
     if (!isAdmin && remainingCount <= 0) {
-      setError("今月のカウント上限に達しました。");
+      setError("今月の生成件数が上限に達しました。追加購入はこちら →");
       return;
     }
 
@@ -605,6 +606,17 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   // ─── Generate all sections ───
   const handleGenerateAll = async () => {
     if (loading) return;
+
+    if (!isAdmin && remainingCount <= 0) {
+      setError("今月の生成件数が上限に達しました。追加購入はこちら →");
+      return;
+    }
+
+    setShowConfirmModal(true);
+  };
+
+  const executeGeneration = async () => {
+    setShowConfirmModal(false);
 
     let prompt = "1\n\n";
     if (hpUrl.trim()) {
@@ -745,32 +757,53 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             }}
           />
 
+          {/* Count display */}
+          <div style={{
+            textAlign: "center",
+            fontSize: "12px",
+            color: remainingCount <= 0 && !isAdmin ? COLORS.red600 : COLORS.gray500,
+            marginBottom: "6px",
+            fontWeight: 600,
+          }}>
+            残り {remainingCount}件
+          </div>
+
           {/* Generate button */}
           <button
             onClick={handleGenerateAll}
-            disabled={loading}
+            disabled={loading || (!isAdmin && remainingCount <= 0)}
             style={{
               width: "100%",
               padding: "10px",
               borderRadius: "8px",
-              background: loading ? COLORS.gray400 : COLORS.accent,
+              background: loading || (!isAdmin && remainingCount <= 0) ? COLORS.gray400 : COLORS.accent,
               color: COLORS.white,
               fontWeight: 700,
               fontSize: "14px",
               border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-              marginBottom: "20px",
+              cursor: loading || (!isAdmin && remainingCount <= 0) ? "not-allowed" : "pointer",
+              marginBottom: remainingCount <= 0 && !isAdmin ? "4px" : "20px",
               transition: "background 0.2s",
             }}
             onMouseEnter={(e) => {
-              if (!loading) (e.target as HTMLButtonElement).style.background = COLORS.accentDark;
+              if (!loading && (isAdmin || remainingCount > 0)) (e.target as HTMLButtonElement).style.background = COLORS.accentDark;
             }}
             onMouseLeave={(e) => {
-              if (!loading) (e.target as HTMLButtonElement).style.background = COLORS.accent;
+              if (!loading && (isAdmin || remainingCount > 0)) (e.target as HTMLButtonElement).style.background = COLORS.accent;
             }}
           >
-            ⚡ 全項目を生成
+            全項目を生成
           </button>
+          {remainingCount <= 0 && !isAdmin && (
+            <div style={{
+              textAlign: "center",
+              fontSize: "11px",
+              color: COLORS.red600,
+              marginBottom: "20px",
+            }}>
+              今月の生成件数が上限に達しました。追加購入はこちら →
+            </div>
+          )}
 
           {/* Section navigation */}
           {([
@@ -1381,6 +1414,78 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           </div>
         )}
       </div>
+
+      {/* Confirmation modal */}
+      {showConfirmModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div
+            style={{
+              background: COLORS.white,
+              borderRadius: "12px",
+              padding: "28px 32px",
+              maxWidth: "400px",
+              width: "90%",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "16px" }}>
+              生成の確認
+            </div>
+            <div style={{ fontSize: "14px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+              計画書を1件生成します。<br />
+              残り{remainingCount}件 → {remainingCount - 1}件になります。<br />
+              よろしいですか？
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: `1px solid ${COLORS.gray300}`,
+                  background: COLORS.white,
+                  color: COLORS.gray600,
+                  fontWeight: 600,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={executeGeneration}
+                style={{
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: COLORS.accent,
+                  color: COLORS.white,
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                生成する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bounce animation */}
       <style>{`

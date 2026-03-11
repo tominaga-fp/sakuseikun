@@ -6,6 +6,8 @@ export interface Profile {
   is_active: boolean;
   monthly_count: number;
   monthly_limit: number;
+  extra_count: number;
+  plan_type: "free" | "monthly_1" | "monthly_3" | "yearly";
   count_reset_at: string;
   agent_code: string | null;
   referred_by: string | null;
