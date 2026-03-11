@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import { Profile, PlanDocument } from "@/types/database";
 
 // ─── Design tokens ───
@@ -234,8 +235,7 @@ function stripScoringBlocks(text: string): string {
   t = t.replace(/(?:\n---\s*)?\n?【審査基準セルフチェック】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
   // 【強化が必要な箇所】 block
   t = t.replace(/(?:\n---\s*)?\n?【強化が必要な箇所】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
-  // 【📊 市場データ補完ガイド】 block
-  t = t.replace(/(?:\n---\s*)?\n?【📊[^】]*】[\s\S]*?(?=\n##|\n【[^\n]*】|$)/g, "");
+  // 【📊 市場データ補完ガイド】 is NOT stripped — it remains visible in the chat bubble
   // 合計: ○点/75点 line
   t = t.replace(/^.*合計[：:]\s*\d*○?\d*\s*点?\s*[/／]\s*\d+点.*$/gm, "");
   // （目安：...） line
@@ -1011,7 +1011,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                     className={msg.role === "assistant" ? "assistant-md" : undefined}
                   >
                     {msg.role === "assistant" ? (
-                      <ReactMarkdown>{stripScoringBlocks(msg.content)}</ReactMarkdown>
+                      <ReactMarkdown rehypePlugins={[rehypeRaw]}>{stripScoringBlocks(msg.content)}</ReactMarkdown>
                     ) : (
                       msg.content
                     )}
