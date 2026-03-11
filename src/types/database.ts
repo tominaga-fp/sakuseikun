@@ -35,6 +35,17 @@ export interface UsageLog {
   created_at: string;
 }
 
+export interface ChatSession {
+  id: string;
+  user_id: string;
+  title: string | null;
+  messages: { role: "user" | "assistant"; content: string }[];
+  section_contents: Record<string, string>;
+  scores: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AgentReward {
   id: string;
   agent_id: string;

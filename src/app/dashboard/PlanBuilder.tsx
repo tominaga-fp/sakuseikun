@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import { createClient } from "@/lib/supabase-browser";
 import { Profile, PlanDocument } from "@/types/database";
 
 // ─── Design tokens ───
@@ -421,13 +422,17 @@ function CollapsiblePanel({
 // ─── Component ───
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps) {
+  const supabase = createClient();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const continueCountRef = useRef(0);
+  const sessionIdRef = useRef<string | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Left panel inputs
   const [hpUrl, setHpUrl] = useState("");
@@ -458,6 +463,40 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const totalScore = useMemo(() => getTotalScore(scores), [scores]);
   const hints = useMemo(() => parseImprovementHints(allAssistantText), [allAssistantText]);
   const strategyMemo = useMemo(() => parseStrategyMemo(allAssistantText), [allAssistantText]);
+
+  // ─── Session persistence ───
+  const saveSession = useCallback(async (msgs: ChatMessage[]) => {
+    if (!profile?.id || msgs.length === 0) return;
+
+    const title = msgs.find((m) => m.role === "user")?.content.slice(0, 30) || "新しい会話";
+
+    if (sessionIdRef.current) {
+      await supabase
+        .from("chat_sessions")
+        .update({ messages: msgs, title, updated_at: new Date().toISOString() })
+        .eq("id", sessionIdRef.current);
+    } else {
+      const { data } = await supabase
+        .from("chat_sessions")
+        .insert({ user_id: profile.id, messages: msgs, title })
+        .select("id")
+        .single();
+      if (data) sessionIdRef.current = data.id;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
+
+  const debouncedSave = useCallback((msgs: ChatMessage[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => saveSession(msgs), 1500);
+  }, [saveSession]);
+
+  // Auto-save on messages change
+  useEffect(() => {
+    if (sessionLoaded && messages.length > 0) {
+      debouncedSave(messages);
+    }
+  }, [messages, sessionLoaded, debouncedSave]);
 
   // ─── Scroll ───
   const scrollToBottom = useCallback(() => {
@@ -584,11 +623,43 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   };
 
   useEffect(() => {
-    if (messages.length === 0) {
-      startNewChat();
-    }
+    const loadOrStartChat = async () => {
+      if (!profile?.id) {
+        startNewChat();
+        setSessionLoaded(true);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("chat_sessions")
+        .select("*")
+        .eq("user_id", profile.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data && Array.isArray(data.messages) && data.messages.length > 0) {
+        sessionIdRef.current = data.id;
+        setMessages(data.messages as ChatMessage[]);
+        setSessionLoaded(true);
+      } else {
+        setSessionLoaded(true);
+        startNewChat();
+      }
+    };
+
+    loadOrStartChat();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleNewSession = async () => {
+    sessionIdRef.current = null;
+    setHpUrl("");
+    setBusinessType("");
+    setHearing("");
+    setCenterTab("chat");
+    await startNewChat();
+  };
 
   // ─── Core send with auto-continue ───
   const sendWithContinuation = async (newMessages: ChatMessage[]) => {
@@ -710,14 +781,33 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       >
         <div
           style={{
-            padding: "16px",
+            padding: "12px 16px",
             borderBottom: `1px solid ${COLORS.gray200}`,
-            fontWeight: 700,
-            fontSize: "14px",
-            color: COLORS.ink,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          入力パネル
+          <span style={{ fontWeight: 700, fontSize: "14px", color: COLORS.ink }}>
+            入力パネル
+          </span>
+          <button
+            onClick={handleNewSession}
+            disabled={loading}
+            style={{
+              padding: "4px 10px",
+              borderRadius: "6px",
+              border: `1px solid ${COLORS.gray300}`,
+              background: COLORS.white,
+              color: COLORS.gray600,
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: loading ? "not-allowed" : "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            + 新しい会話
+          </button>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
