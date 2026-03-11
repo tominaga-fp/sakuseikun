@@ -719,34 +719,36 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const scorePercent = Math.round((totalScore / 75) * 100);
 
   const paymentUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
-  const extraPurchaseUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
 
   // ─── Free plan copy/keyboard/contextmenu block ───
   useEffect(() => {
     if (!isFree) return;
 
     const handleCopy = (e: ClipboardEvent) => {
+      e.stopPropagation();
       e.preventDefault();
       setShowUpgradeModal(true);
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        e.stopPropagation();
         e.preventDefault();
         setShowUpgradeModal(true);
       }
     };
     const handleContextMenu = (e: MouseEvent) => {
+      e.stopPropagation();
       e.preventDefault();
       setShowUpgradeModal(true);
     };
 
-    document.addEventListener("copy", handleCopy, true);
-    document.addEventListener("keydown", handleKeyDown, true);
-    document.addEventListener("contextmenu", handleContextMenu, true);
+    document.addEventListener("copy", handleCopy, { capture: true });
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    document.addEventListener("contextmenu", handleContextMenu, { capture: true });
     return () => {
-      document.removeEventListener("copy", handleCopy, true);
-      document.removeEventListener("keydown", handleKeyDown, true);
-      document.removeEventListener("contextmenu", handleContextMenu, true);
+      document.removeEventListener("copy", handleCopy, { capture: true });
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
+      document.removeEventListener("contextmenu", handleContextMenu, { capture: true });
     };
   }, [isFree]);
 
@@ -908,12 +910,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             }}
           />
 
-          {/* Count display + extra purchase */}
+          {/* Count display */}
           <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
+            textAlign: "center",
             marginBottom: "6px",
           }}>
             <span style={{
@@ -923,32 +922,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             }}>
               残り {remainingCount}件
             </span>
-            {!isAdmin && (
-              <button
-                onClick={() => {
-                  if (isFree) {
-                    setShowUpgradeModal(true);
-                  } else {
-                    window.open(extraPurchaseUrl, "_blank");
-                  }
-                }}
-                style={{
-                  padding: "3px 10px",
-                  borderRadius: "6px",
-                  border: `1px solid ${isFree ? COLORS.gray300 : COLORS.gold}`,
-                  background: isFree ? COLORS.gray100 : `${COLORS.gold}10`,
-                  color: isFree ? COLORS.gray400 : COLORS.gold,
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  cursor: isFree ? "not-allowed" : "pointer",
-                  opacity: isFree ? 0.6 : 1,
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                1件追加（¥5,000）
-              </button>
-            )}
           </div>
 
           {/* Generate button */}
