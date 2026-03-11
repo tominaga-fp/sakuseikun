@@ -940,7 +940,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               if (!loading && (isAdmin || remainingCount > 0)) (e.target as HTMLButtonElement).style.background = COLORS.accent;
             }}
           >
-            全項目を生成
+            情報を送信
           </button>
           {remainingCount <= 0 && !isAdmin && (
             <div style={{ fontSize: "11px", color: COLORS.red600, textAlign: "center", marginBottom: "6px" }}>
