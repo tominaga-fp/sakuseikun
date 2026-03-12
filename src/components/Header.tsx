@@ -10,11 +10,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
   const supabase = createClient();
   const router = useRouter();
 
-  const initialCount = Math.max(
-    0,
-    ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) +
-      (profile?.extra_count ?? 0)
-  );
+  const initialCount = Math.max(0, profile?.extra_count ?? 0);
   const [displayCount, setDisplayCount] = useState(initialCount);
 
   // Listen for count updates from PlanBuilder

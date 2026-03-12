@@ -400,7 +400,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const isAdmin = profile?.role === "admin";
   const isFree = (profile?.plan_type ?? "free") === "free" && !isAdmin;
   const [remainingCount, setRemainingCount] = useState(
-    Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))
+    Math.max(0, profile?.extra_count ?? 0)
   );
   const [showCountModal, setShowCountModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<false | "copy" | "newSession">(false);

@@ -35,30 +35,19 @@ export async function POST() {
       return NextResponse.json({ consumed: false, ok: true });
     }
 
-    const currentCount = profile.monthly_count ?? 0;
-    const monthlyLimit = profile.monthly_limit ?? 0;
     const extraCount = profile.extra_count ?? 0;
-    const remaining = monthlyLimit - currentCount + extraCount;
 
-    if (remaining <= 0) {
+    if (extraCount <= 0) {
       return NextResponse.json(
         { error: "上限到達", consumed: false, ok: false },
         { status: 429 }
       );
     }
 
-    // カウント消費: monthly_limitを超えた分はextra_countから引く
-    const monthlyRemaining = monthlyLimit - currentCount;
-    const updateFields: Record<string, number> = {
-      monthly_count: currentCount + 1,
-    };
-    if (monthlyRemaining <= 0 && extraCount > 0) {
-      updateFields.extra_count = extraCount - 1;
-    }
-
+    // extra_countを-1する
     const { error: updateError } = await supabase
       .from("profiles")
-      .update(updateFields)
+      .update({ extra_count: extraCount - 1 })
       .eq("id", user.id);
 
     if (updateError) {
