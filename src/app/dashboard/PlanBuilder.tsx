@@ -106,28 +106,6 @@ interface ScoreEntry {
   reason: string;
 }
 
-// ─── Fix 1: Incomplete response detection ───
-const MAX_AUTO_CONTINUE = 3;
-
-function isResponseIncomplete(text: string): boolean {
-  if (!text || text.length < 100) return false;
-  const trimmed = text.trimEnd();
-  // Ends mid-sentence (no terminal punctuation)
-  if (/[、，,]$/.test(trimmed)) return true;
-  // Ends with ellipsis or continuation markers
-  if (/\.{2,}$|…$/.test(trimmed)) return true;
-  // Ends with incomplete markdown (open table row, unclosed bold, etc.)
-  if (/\|[^|\n]*$/.test(trimmed) && !/\|\s*$/.test(trimmed)) return true;
-  if (/\*{1,2}[^*]+$/.test(trimmed.slice(-80))) return true;
-  // Ends with an open heading or bullet without content
-  if (/(?:^|\n)(?:#{1,3}|[-*])\s*$/.test(trimmed.slice(-20))) return true;
-  // Long draft that stops abruptly without reaching the self-check
-  const hasDraftStart = /【経営計画】|＜Step B/.test(text);
-  const hasSelfCheck = /【審査基準セルフチェック】|合計:.*\/75/.test(text);
-  if (hasDraftStart && !hasSelfCheck && text.length > 2000) return true;
-  return false;
-}
-
 // ─── Fix 2: SWOT / 戦略整理メモ parsing ───
 function parseStrategyMemo(text: string): string | null {
   // Try multiple patterns the AI uses
@@ -396,7 +374,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const continueCountRef = useRef(0);
+
   const sessionIdRef = useRef<string | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countConsumedRef = useRef(false);
@@ -580,48 +558,15 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     return newText;
   };
 
-  // ─── Auto-continuation logic (Fix 1) ───
-  const attemptContinuation = useCallback(async (currentMessages: ChatMessage[]) => {
-    if (continueCountRef.current >= MAX_AUTO_CONTINUE) return;
-
-    const lastMsg = currentMessages[currentMessages.length - 1];
-    if (!lastMsg || lastMsg.role !== "assistant") return;
-    if (!isResponseIncomplete(lastMsg.content)) return;
-
-    continueCountRef.current += 1;
-
-    // Build continuation messages: include the hidden "続けてください"
-    const contMsgs: ChatMessage[] = [
-      ...currentMessages,
-      { role: "user", content: "続けてください" },
-    ];
-
-    try {
-      const newText = await sendToAPIWithAppend(contMsgs, true);
-
-      // Check if we need to continue again
-      setMessages((prev) => {
-        const updated = [...prev];
-        // The continuation response might also be incomplete
-        setTimeout(() => {
-          attemptContinuation(updated);
-        }, 500);
-        return updated;
-      });
-
-      return newText;
-    } catch {
-      // Silent fail on continuation
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ─── Auto-continuation disabled ───
+  // 自動続行は無効化。ユーザーが手動で「続けてください」と送信した場合のみ続行する。
 
   // ─── Init greeting ───
   const startNewChat = async () => {
     setMessages([]);
     setError("");
     setLoading(true);
-    continueCountRef.current = 0;
+
 
     const initialMessages: ChatMessage[] = [
       { role: "user", content: "計画書の作成を始めたいです。" },
@@ -686,19 +631,14 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     await startNewChat();
   };
 
-  // ─── Core send with auto-continue ───
+  // ─── Core send (auto-continue disabled) ───
   const sendWithContinuation = async (newMessages: ChatMessage[]) => {
-    continueCountRef.current = 0;
+
     setError("");
     setLoading(true);
 
     try {
       await sendToAPIWithAppend(newMessages, false);
-      // After initial response, check for continuation
-      setMessages((prev) => {
-        setTimeout(() => attemptContinuation(prev), 500);
-        return prev;
-      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
