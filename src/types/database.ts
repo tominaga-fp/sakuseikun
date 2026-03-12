@@ -78,3 +78,12 @@ export interface AffiliatePayment {
   paid_at: string | null;
   created_at: string;
 }
+
+export interface Sale {
+  id: string;
+  user_id: string;
+  amount: number;
+  plan_type: string;
+  payment_date: string;
+  webhook_data: unknown;
+}

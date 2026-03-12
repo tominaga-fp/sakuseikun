@@ -43,6 +43,11 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  const { data: sales } = await adminSupabase
+    .from("sales")
+    .select("*, user:profiles!sales_user_id_fkey(email, last_name, first_name)")
+    .order("payment_date", { ascending: false });
+
   return (
     <div className="min-h-screen">
       <Header profile={profile} />
@@ -52,6 +57,7 @@ export default async function AdminPage() {
           users={users ?? []}
           agents={agents ?? []}
           rewards={rewards ?? []}
+          sales={sales ?? []}
         />
       </main>
     </div>
