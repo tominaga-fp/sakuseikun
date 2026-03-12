@@ -403,7 +403,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     Math.max(0, ((profile?.monthly_limit ?? 0) - (profile?.monthly_count ?? 0)) + (profile?.extra_count ?? 0))
   );
   const [showCountModal, setShowCountModal] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState<false | "copy" | "newSession">(false);
   const [sessionList, setSessionList] = useState<ChatSessionItem[]>([]);
   const pendingMessageRef = useRef<string | null>(null);
 
@@ -623,7 +623,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const handleNewSession = async () => {
     // 残り0件ならモーダル表示してブロック
     if (!isAdmin && remainingCount <= 0) {
-      setShowUpgradeModal(true);
+      setShowUpgradeModal("newSession");
       return;
     }
 
@@ -767,13 +767,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const handleCopy = (e: ClipboardEvent) => {
       e.stopPropagation();
       e.preventDefault();
-      setShowUpgradeModal(true);
+      setShowUpgradeModal("copy");
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         e.stopPropagation();
         e.preventDefault();
-        setShowUpgradeModal(true);
+        setShowUpgradeModal("copy");
       }
     };
     document.addEventListener("copy", handleCopy, { capture: true });
@@ -1387,7 +1387,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   <button
                     onClick={() => {
                       if (isFree) {
-                        setShowUpgradeModal(true);
+                        setShowUpgradeModal("copy");
                       } else {
                         copySection(extractSupplementary(sections[activeSectionId]).body);
                       }
@@ -1714,77 +1714,72 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       )}
 
       {/* Upgrade modal */}
-      {showUpgradeModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
-          onClick={() => setShowUpgradeModal(false)}
-        >
+      {showUpgradeModal && (() => {
+        const isNewSession = showUpgradeModal === "newSession";
+        const isBasicPlan = (profile?.plan_type ?? "free") !== "free";
+
+        // コピーモーダル（free専用）
+        if (!isNewSession) {
+          return (
+            <div
+              style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "400px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>機能制限中</div>
+                <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+                  無料プランではコピーはできません。コピーする場合はベーシックプランをご購入ください。
+                </div>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                  <button onClick={() => setShowUpgradeModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
+                  <button onClick={() => { window.open(paymentUrl, "_blank"); setShowUpgradeModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.accent, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>ベーシックプラン（¥9,800）</button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // 新しい会話モーダル（プラン別）
+        if (isBasicPlan) {
+          const extraUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
+          return (
+            <div
+              style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "400px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>生成件数が上限に達しました</div>
+                <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+                  1件追加（¥5,000）するとすぐに利用再開できます。
+                </div>
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                  <button onClick={() => setShowUpgradeModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
+                  <button onClick={() => { window.open(extraUrl, "_blank"); setShowUpgradeModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.accent, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>1件追加（¥5,000）</button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // freeプラン + 新しい会話
+        return (
           <div
-            style={{
-              background: COLORS.white,
-              borderRadius: "12px",
-              padding: "28px 32px",
-              maxWidth: "400px",
-              width: "90%",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-            }}
-            onClick={(e) => e.stopPropagation()}
+            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+            onClick={() => setShowUpgradeModal(false)}
           >
-            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>
-              機能制限中
-            </div>
-            <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              無料プランではコピーはできません。コピーする場合はベーシックプランをご購入ください。
-            </div>
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
-              <button
-                onClick={() => setShowUpgradeModal(false)}
-                style={{
-                  padding: "8px 20px",
-                  borderRadius: "8px",
-                  border: `1px solid ${COLORS.gray300}`,
-                  background: COLORS.white,
-                  color: COLORS.gray600,
-                  fontWeight: 600,
-                  fontSize: "13px",
-                  cursor: "pointer",
-                }}
-              >
-                閉じる
-              </button>
-              <button
-                onClick={() => {
-                  window.open(paymentUrl, "_blank");
-                  setShowUpgradeModal(false);
-                }}
-                style={{
-                  padding: "8px 20px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: COLORS.accent,
-                  color: COLORS.white,
-                  fontWeight: 700,
-                  fontSize: "13px",
-                  cursor: "pointer",
-                }}
-              >
-                ベーシックプラン（¥9,800）
-              </button>
+            <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "400px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>新しい会話を開始できません</div>
+              <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+                無料プランの1件を使用済みです。続けてご利用いただくにはベーシックプランをご購入ください。
+              </div>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                <button onClick={() => setShowUpgradeModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
+                <button onClick={() => { window.open(paymentUrl, "_blank"); setShowUpgradeModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.accent, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>ベーシックプラン（¥9,800）</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Bounce animation */}
       <style>{`
