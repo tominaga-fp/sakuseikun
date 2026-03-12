@@ -58,3 +58,23 @@ export interface AgentReward {
   is_paid: boolean;
   created_at: string;
 }
+
+export interface Affiliate {
+  id: string;
+  affiliate_user_id: string;
+  referred_user_id: string;
+  created_at: string;
+}
+
+export interface AffiliatePayment {
+  id: string;
+  affiliate_user_id: string;
+  referred_user_id: string;
+  amount: number;
+  reward: number;
+  rate: number;
+  payment_date: string;
+  paid: boolean;
+  paid_at: string | null;
+  created_at: string;
+}

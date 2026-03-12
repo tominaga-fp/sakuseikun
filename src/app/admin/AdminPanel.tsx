@@ -98,6 +98,12 @@ export default function AdminPanel({ users, agents, rewards }: AdminPanelProps) 
             {tab.label}
           </button>
         ))}
+        <a
+          href="/admin/affiliates"
+          className="px-4 py-2 rounded-lg font-medium transition-colors bg-white/60 text-gray-600 hover:bg-white"
+        >
+          アフィリエイト管理
+        </a>
       </div>
 
       {activeTab === "users" && (
