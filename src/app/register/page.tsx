@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
+import { notifyNewUser } from "./actions";
 
 export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
@@ -55,6 +56,10 @@ export default function RegisterPage() {
         },
       });
       if (error) throw error;
+
+      // 管理者への通知メール（失敗しても登録は成功扱い）
+      notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});
+
       setMessage("確認メールを送信しました。メールを確認してアカウントを有効化してください。");
     } catch (err) {
       setError(err instanceof Error ? err.message : "登録に失敗しました");
