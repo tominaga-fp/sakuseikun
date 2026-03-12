@@ -84,6 +84,7 @@ export default function RegisterPage() {
             補助金計画書<span className="text-shu">さくせいくん</span>
           </h1>
           <p className="text-sm text-gray-500 mt-2">無料アカウント作成</p>
+          <p className="text-xs text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
