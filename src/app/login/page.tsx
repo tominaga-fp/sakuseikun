@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -42,6 +43,7 @@ export default function LoginPage() {
             補助金計画書<span className="text-shu">さくせいくん</span>
           </h1>
           <p className="text-sm text-gray-500 mt-2">ログイン</p>
+          <p className="text-xs text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
@@ -113,7 +115,7 @@ export default function LoginPage() {
             新規登録
           </Link>
         </div>
-        <p className="mt-8 text-center text-[10px] text-gray-400">運営：とみながFP事務所</p>
+        <Footer />
       </div>
     </div>
   );

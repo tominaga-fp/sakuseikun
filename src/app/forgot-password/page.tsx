@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -90,6 +91,7 @@ export default function ForgotPasswordPage() {
             ログインページへ戻る
           </Link>
         </div>
+        <Footer />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
 import { notifyNewUser } from "./actions";
+import Footer from "@/components/Footer";
 
 export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
@@ -299,7 +300,7 @@ export default function RegisterPage() {
             ログイン
           </Link>
         </div>
-        <p className="mt-8 text-center text-[10px] text-gray-400">運営：とみながFP事務所</p>
+        <Footer />
       </div>
     </div>
   );
