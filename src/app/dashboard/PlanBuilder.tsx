@@ -1314,6 +1314,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                   送信
                 </button>
               </div>
+              <p style={{ margin: "4px 0 0", fontSize: "11px", color: COLORS.gray400, textAlign: "center" }}>
+                応答が途中で止まった場合は「続けて」と入力してください
+              </p>
             </div>
           </div>
         ) : (
