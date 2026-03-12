@@ -14,6 +14,28 @@ export default function AdminPanel({ users, agents, rewards }: AdminPanelProps) 
   const [userList, setUserList] = useState(users);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  const addExtraCount = async (userId: string) => {
+    setActionLoading(userId + "-extra");
+    try {
+      const target = userList.find((u) => u.id === userId);
+      if (!target) return;
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, extra_count: (target.extra_count ?? 0) + 1 }),
+      });
+      if (res.ok) {
+        setUserList((prev) =>
+          prev.map((u) =>
+            u.id === userId ? { ...u, extra_count: (u.extra_count ?? 0) + 1 } : u
+          )
+        );
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const toggleUserActive = async (userId: string, currentStatus: boolean) => {
     setActionLoading(userId);
     try {
@@ -84,6 +106,8 @@ export default function AdminPanel({ users, agents, rewards }: AdminPanelProps) 
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-2">メール</th>
+                <th className="text-left py-3 px-2">氏名</th>
+                <th className="text-left py-3 px-2">会社名</th>
                 <th className="text-left py-3 px-2">ロール</th>
                 <th className="text-center py-3 px-2">カウント</th>
                 <th className="text-center py-3 px-2">状態</th>
@@ -95,6 +119,8 @@ export default function AdminPanel({ users, agents, rewards }: AdminPanelProps) 
               {userList.map((u) => (
                 <tr key={u.id} className="border-b border-gray-100">
                   <td className="py-3 px-2">{u.email}</td>
+                  <td className="py-3 px-2">{[u.last_name, u.first_name].filter(Boolean).join(" ") || "—"}</td>
+                  <td className="py-3 px-2">{u.company_name || "—"}</td>
                   <td className="py-3 px-2">
                     <select
                       value={u.role}
@@ -124,17 +150,26 @@ export default function AdminPanel({ users, agents, rewards }: AdminPanelProps) 
                     {new Date(u.created_at).toLocaleDateString("ja-JP")}
                   </td>
                   <td className="py-3 px-2 text-center">
-                    <button
-                      onClick={() => toggleUserActive(u.id, u.is_active)}
-                      disabled={actionLoading === u.id}
-                      className={`text-xs px-3 py-1 rounded ${
-                        u.is_active
-                          ? "bg-red-100 text-red-700 hover:bg-red-200"
-                          : "bg-green-100 text-green-700 hover:bg-green-200"
-                      }`}
-                    >
-                      {u.is_active ? "無効化" : "有効化"}
-                    </button>
+                    <div className="flex gap-1 justify-center">
+                      <button
+                        onClick={() => toggleUserActive(u.id, u.is_active)}
+                        disabled={actionLoading === u.id}
+                        className={`text-xs px-3 py-1 rounded ${
+                          u.is_active
+                            ? "bg-red-100 text-red-700 hover:bg-red-200"
+                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                        }`}
+                      >
+                        {u.is_active ? "無効化" : "有効化"}
+                      </button>
+                      <button
+                        onClick={() => addExtraCount(u.id)}
+                        disabled={actionLoading === u.id + "-extra"}
+                        className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                      >
+                        +1件追加
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

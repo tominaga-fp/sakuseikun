@@ -29,7 +29,7 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   const { userId, ...updates } = body;
 
-  const allowedFields = ["is_active", "role", "monthly_limit"];
+  const allowedFields = ["is_active", "role", "monthly_limit", "extra_count"];
   const safeUpdates: Record<string, unknown> = {};
   for (const key of allowedFields) {
     if (key in updates) {

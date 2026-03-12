@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import AdminPanel from "./AdminPanel";
@@ -20,7 +21,13 @@ export default async function AdminPage() {
 
   if (profile?.role !== "admin") redirect("/dashboard");
 
-  const { data: users } = await supabase
+  // service_role keyでRLSバイパスして全ユーザー取得
+  const adminSupabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: users } = await adminSupabase
     .from("profiles")
     .select("*")
     .order("created_at", { ascending: false });
