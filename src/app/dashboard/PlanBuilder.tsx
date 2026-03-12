@@ -590,7 +590,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   useEffect(() => {
     const loadOrStartChat = async () => {
       if (!profile?.id) {
-        startNewChat();
         setSessionLoaded(true);
         return;
       }
@@ -608,11 +607,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         const msgs = data.messages as ChatMessage[];
         setMessages(msgs);
         countConsumedRef.current = true;
-        setSessionLoaded(true);
-      } else {
-        setSessionLoaded(true);
-        startNewChat();
       }
+      setSessionLoaded(true);
     };
 
     loadOrStartChat();
@@ -1184,6 +1180,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {/* Messages */}
             <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+              {messages.length === 0 && !loading && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: COLORS.gray400, fontSize: "14px", textAlign: "center", lineHeight: 1.8 }}>
+                  「＋新しい会話」ボタンを押して<br />計画書の作成を始めましょう
+                </div>
+              )}
               {messages.map((msg, i) => (
                 <div
                   key={i}
