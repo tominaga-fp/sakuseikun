@@ -714,7 +714,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       prompt += `STEP1のHP URL: ${hpUrl.trim()}\n\n`;
     }
     if (businessType.trim()) {
-      prompt += `業種・補助事業概要: ${businessType.trim()}\n\n`;
+      prompt += `社名・屋号: ${businessType.trim()}\n\n`;
     }
     if (hearing.trim()) {
       prompt += `STEP2のヒアリング文字起こし:\n${hearing.trim()}\n\n`;
@@ -965,15 +965,15 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             }}
           />
 
-          {/* 業種・補助事業概要 */}
+          {/* 社名・屋号 */}
           <label style={{ display: "block", marginBottom: "4px", fontSize: "12px", fontWeight: 600, color: COLORS.gray600 }}>
-            業種・補助事業概要
+            社名・屋号
           </label>
           <input
             type="text"
             value={businessType}
             onChange={(e) => { setBusinessType(e.target.value); businessTypeRef.current = e.target.value; }}
-            placeholder="例：飲食業、券売機導入"
+            placeholder="例：株式会社山田商店、山田屋"
             style={{
               width: "100%",
               padding: "8px 10px",
