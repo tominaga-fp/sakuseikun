@@ -226,7 +226,12 @@ function stripScoringBlocks(text: string): string {
 function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
 
-  const keieiPart = text.split(/【補助事業計画】/)[0] || text;
+  // ドラフト部分（【経営計画】以降）のみをパース対象とする
+  const keieiStart = text.indexOf("【経営計画】");
+  if (keieiStart === -1) return result;
+  const draftText = text.slice(keieiStart);
+
+  const keieiPart = draftText.split(/【補助事業計画】/)[0] || draftText;
   // Match both "3-1." (hyphenated) and "3." (single digit) section headings
   const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d(?:-\d)?)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d(?:-\d)?\.)|$)/g;
   let match;
@@ -238,9 +243,9 @@ function parseSections(text: string): Record<string, string> {
     }
   }
 
-  const hojoStart = text.indexOf("【補助事業計画】");
+  const hojoStart = draftText.indexOf("【補助事業計画】");
   if (hojoStart === -1) return result;
-  const hojoPart = text.slice(hojoStart);
+  const hojoPart = draftText.slice(hojoStart);
 
   const nameMatch = hojoPart.match(/\*{0,2}1\.\s*補助事業で行う事業名\*{0,2}\s*\n([\s\S]*?)(?=\n\*{0,2}\d)/);
   if (nameMatch) result["hojo-name"] = nameMatch[1].trim();
@@ -1737,10 +1742,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>
-              生成件数が上限に達しました
+              機能制限中
             </div>
             <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              今月の生成件数が上限に達しました。1件追加（¥5,000）するか、新規登録の方はベーシックプランをご購入ください。
+              無料プランではコピーはできません。コピーする場合はベーシックプランをご購入ください。
             </div>
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
               <button
@@ -1757,25 +1762,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 }}
               >
                 閉じる
-              </button>
-              <button
-                onClick={() => {
-                  const extraUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
-                  window.open(extraUrl, "_blank");
-                  setShowUpgradeModal(false);
-                }}
-                style={{
-                  padding: "8px 20px",
-                  borderRadius: "8px",
-                  border: `1px solid ${COLORS.gold}`,
-                  background: `${COLORS.gold}10`,
-                  color: COLORS.gold,
-                  fontWeight: 700,
-                  fontSize: "13px",
-                  cursor: "pointer",
-                }}
-              >
-                1件追加（¥5,000）
               </button>
               <button
                 onClick={() => {
