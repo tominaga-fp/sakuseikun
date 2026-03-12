@@ -465,6 +465,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const saveSession = useCallback(async (msgs: ChatMessage[]) => {
     if (!profile?.id || msgs.length === 0) return;
 
+    // 挨拶文のみ（assistantメッセージ1件だけ）の場合はセッション保存しない
+    const hasUserMessage = msgs.some((m) => m.role === "user");
+    if (!hasUserMessage && !sessionIdRef.current) return;
+
     const title = businessTypeRef.current.trim() || "新しい会話";
 
     if (sessionIdRef.current) {
@@ -590,6 +594,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   useEffect(() => {
     const loadOrStartChat = async () => {
       if (!profile?.id) {
+        startNewChat();
         setSessionLoaded(true);
         return;
       }
@@ -607,6 +612,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         const msgs = data.messages as ChatMessage[];
         setMessages(msgs);
         countConsumedRef.current = true;
+      } else {
+        startNewChat();
       }
       setSessionLoaded(true);
     };
@@ -1180,11 +1187,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {/* Messages */}
             <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-              {messages.length === 0 && !loading && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: COLORS.gray400, fontSize: "14px", textAlign: "center", lineHeight: 1.8 }}>
-                  「＋新しい会話」ボタンを押して<br />計画書の作成を始めましょう
-                </div>
-              )}
               {messages.map((msg, i) => (
                 <div
                   key={i}
