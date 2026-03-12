@@ -35,9 +35,12 @@ export default function Header({ profile }: { profile: Profile | null }) {
   return (
     <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/dashboard" className="font-bold text-lg">
-          補助金計画書<span className="text-shu">さくせいくん</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="font-bold text-lg">
+            補助金計画書<span className="text-shu">さくせいくん</span>
+          </Link>
+          <span className="text-[10px] text-gray-400 hidden sm:inline">運営：とみながFP事務所</span>
+        </div>
 
         <div className="flex items-center gap-4">
           {profile?.role === "admin" && (

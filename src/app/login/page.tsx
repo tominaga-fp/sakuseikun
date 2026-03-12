@@ -113,6 +113,7 @@ export default function LoginPage() {
             新規登録
           </Link>
         </div>
+        <p className="mt-8 text-center text-[10px] text-gray-400">運営：とみながFP事務所</p>
       </div>
     </div>
   );
