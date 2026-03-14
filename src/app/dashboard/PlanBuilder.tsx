@@ -1517,7 +1517,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           }}
         >
           <div style={{ fontSize: "12px", fontWeight: 600, color: COLORS.gray500, marginBottom: "8px" }}>
-            採点スコア
+            充足度チェック
           </div>
           <div
             style={{
@@ -1566,7 +1566,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 ? "情報追加で改善可能"
                 : totalScore > 0
                   ? "情報不足 — 追加ヒアリング推奨"
-                  : "ドラフト生成後に採点されます"}
+                  : "ドラフト生成後に表示されます"}
           </div>
         </div>
 

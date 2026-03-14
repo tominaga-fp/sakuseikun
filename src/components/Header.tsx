@@ -54,7 +54,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
             </Link>
           )}
           <span className="text-sm text-gray-500">
-            {isUnlimited ? "無制限" : `残り ${displayCount}件`}
+            {isUnlimited ? "無制限（4/30まで）" : `残り ${displayCount}件`}
           </span>
           {profile?.role !== "admin" && (
             <button
@@ -68,9 +68,15 @@ export default function Header({ profile }: { profile: Profile | null }) {
                   : "border-yellow-500 bg-yellow-50 text-yellow-600 hover:bg-yellow-100 cursor-pointer"
               }`}
             >
-              1件追加（¥5,000）
+              1件追加（¥9,800）
             </button>
           )}
+          <span className="text-sm text-gray-600 hidden sm:inline">
+            {profile?.display_name
+              || [profile?.last_name, profile?.first_name].filter(Boolean).join(" ")
+              || profile?.email
+              || ""}
+          </span>
           <button
             onClick={handleLogout}
             className="text-sm text-gray-600 hover:text-shu transition-colors"
