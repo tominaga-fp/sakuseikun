@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +14,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  // ログインページ表示時に既存セッションをクリア（毎回ID/PW入力させる）
+  useEffect(() => {
+    supabase.auth.signOut();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

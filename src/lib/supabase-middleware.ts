@@ -29,12 +29,14 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
   const isPublicPage =
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/register" ||
-    request.nextUrl.pathname === "/forgot-password";
-  const isAuthCallback = request.nextUrl.pathname.startsWith("/api/auth");
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password";
+  const isAuthCallback = pathname.startsWith("/api/auth");
+  const isApiRoute = pathname.startsWith("/api/");
 
   if (!user && !isPublicPage && !isAuthCallback && !isApiRoute) {
     const url = request.nextUrl.clone();
@@ -42,7 +44,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isPublicPage) {
+  // ログイン済みでも /login はそのまま表示（毎回ID/PW入力させる）
+  // / と /register と /forgot-password のみリダイレクト
+  if (user && isPublicPage && pathname !== "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
