@@ -8,6 +8,7 @@ export interface Profile {
   user_type: "business" | "consultant";
   role: "user" | "admin" | "agent";
   is_active: boolean;
+  is_monitor: boolean;
   monthly_count: number;
   monthly_limit: number;
   extra_count: number;

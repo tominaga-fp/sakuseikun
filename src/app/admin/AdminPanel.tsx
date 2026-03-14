@@ -31,6 +31,9 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   const [editCompanyName, setEditCompanyName] = useState("");
   const [editSaving, setEditSaving] = useState(false);
 
+  // user_typeフィルター
+  const [userTypeFilter, setUserTypeFilter] = useState<"all" | "business" | "consultant">("all");
+
   // 売上フィルター
   const [salesFilterMonth, setSalesFilterMonth] = useState("");
 
@@ -112,6 +115,57 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     }
   };
 
+  const toggleMonitor = async (userId: string, current: boolean) => {
+    setActionLoading(userId + "-monitor");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, is_monitor: !current }),
+      });
+      if (res.ok) {
+        setUserList((prev) =>
+          prev.map((u) =>
+            u.id === userId ? { ...u, is_monitor: !current } : u
+          )
+        );
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const exportCSV = () => {
+    const headers = [
+      "id", "email", "last_name", "first_name", "company_name", "user_type",
+      "role", "is_active", "is_monitor", "monthly_count", "monthly_limit",
+      "extra_count", "plan_type", "count_reset_at", "agent_code", "referred_by",
+      "created_at", "updated_at",
+    ];
+    const escape = (v: unknown) => {
+      const s = v == null ? "" : String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+    const rows = filteredUserList.map((u) =>
+      headers.map((h) => escape((u as unknown as Record<string, unknown>)[h])).join(",")
+    );
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `users_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const filteredUserList = useMemo(() => {
+    if (userTypeFilter === "all") return userList;
+    return userList.filter((u) => u.user_type === userTypeFilter);
+  }, [userList, userTypeFilter]);
+
   const updateUserRole = async (userId: string, role: string) => {
     setActionLoading(userId);
     try {
@@ -192,83 +246,134 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
 
       {activeTab === "users" && (
         <div className="card-washi overflow-x-auto">
+          {/* フィルター・エクスポート */}
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <label className="text-sm text-gray-500">ユーザー種別：</label>
+            <select
+              value={userTypeFilter}
+              onChange={(e) => setUserTypeFilter(e.target.value as "all" | "business" | "consultant")}
+              className="text-sm border rounded px-2 py-1"
+            >
+              <option value="all">すべて（{userList.length}）</option>
+              <option value="business">事業者（{userList.filter((u) => u.user_type === "business").length}）</option>
+              <option value="consultant">コンサルタント（{userList.filter((u) => u.user_type === "consultant").length}）</option>
+            </select>
+            <button
+              onClick={exportCSV}
+              className="ml-auto text-xs px-4 py-1.5 rounded bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+            >
+              CSVエクスポート
+            </button>
+          </div>
+
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-2">メール</th>
                 <th className="text-left py-3 px-2">氏名</th>
                 <th className="text-left py-3 px-2">会社名</th>
+                <th className="text-center py-3 px-2">種別</th>
                 <th className="text-left py-3 px-2">ロール</th>
-                <th className="text-center py-3 px-2">カウント</th>
+                <th className="text-center py-3 px-2">残数</th>
+                <th className="text-center py-3 px-2">モニター</th>
                 <th className="text-center py-3 px-2">状態</th>
                 <th className="text-center py-3 px-2">登録日</th>
                 <th className="text-center py-3 px-2">操作</th>
               </tr>
             </thead>
             <tbody>
-              {userList.map((u) => (
-                <tr key={u.id} className="border-b border-gray-100">
-                  <td className="py-3 px-2">{u.email}</td>
-                  <td className="py-3 px-2">{[u.last_name, u.first_name].filter(Boolean).join(" ") || "—"}</td>
-                  <td className="py-3 px-2">{u.company_name || "—"}</td>
-                  <td className="py-3 px-2">
-                    <select
-                      value={u.role}
-                      onChange={(e) => updateUserRole(u.id, e.target.value)}
-                      className="text-xs border rounded px-1 py-0.5"
-                    >
-                      <option value="user">user</option>
-                      <option value="admin">admin</option>
-                      <option value="agent">agent</option>
-                    </select>
-                  </td>
-                  <td className="py-3 px-2 text-center">
-                    {u.monthly_count}/{u.monthly_limit}
-                  </td>
-                  <td className="py-3 px-2 text-center">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        u.is_active
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {u.is_active ? "有効" : "無効"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 text-center text-gray-500">
-                    {new Date(u.created_at).toLocaleDateString("ja-JP")}
-                  </td>
-                  <td className="py-3 px-2 text-center">
-                    <div className="flex gap-1 justify-center">
+              {filteredUserList.map((u) => {
+                const remaining = u.is_monitor
+                  ? "無制限"
+                  : `${Math.max(0, (u.monthly_limit ?? 1) - (u.monthly_count ?? 0) + (u.extra_count ?? 0))}`;
+                return (
+                  <tr key={u.id} className="border-b border-gray-100">
+                    <td className="py-3 px-2">{u.email}</td>
+                    <td className="py-3 px-2">{[u.last_name, u.first_name].filter(Boolean).join(" ") || "—"}</td>
+                    <td className="py-3 px-2">{u.company_name || "—"}</td>
+                    <td className="py-3 px-2 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        u.user_type === "consultant"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {u.user_type === "consultant" ? "コンサル" : "事業者"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <select
+                        value={u.role}
+                        onChange={(e) => updateUserRole(u.id, e.target.value)}
+                        className="text-xs border rounded px-1 py-0.5"
+                      >
+                        <option value="user">user</option>
+                        <option value="admin">admin</option>
+                        <option value="agent">agent</option>
+                      </select>
+                    </td>
+                    <td className="py-3 px-2 text-center font-medium">
+                      {remaining}
+                    </td>
+                    <td className="py-3 px-2 text-center">
                       <button
-                        onClick={() => toggleUserActive(u.id, u.is_active)}
-                        disabled={actionLoading === u.id}
-                        className={`text-xs px-3 py-1 rounded ${
-                          u.is_active
-                            ? "bg-red-100 text-red-700 hover:bg-red-200"
-                            : "bg-green-100 text-green-700 hover:bg-green-200"
+                        onClick={() => toggleMonitor(u.id, u.is_monitor ?? false)}
+                        disabled={actionLoading === u.id + "-monitor"}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                          u.is_monitor ? "bg-shu" : "bg-gray-300"
                         }`}
                       >
-                        {u.is_active ? "無効化" : "有効化"}
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                            u.is_monitor ? "translate-x-4" : "translate-x-0.5"
+                          }`}
+                        />
                       </button>
-                      <button
-                        onClick={() => addExtraCount(u.id)}
-                        disabled={actionLoading === u.id + "-extra"}
-                        className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          u.is_active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
                       >
-                        +1件追加
-                      </button>
-                      <button
-                        onClick={() => openEditModal(u)}
-                        className="text-xs px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      >
-                        編集
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {u.is_active ? "有効" : "無効"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-center text-gray-500">
+                      {new Date(u.created_at).toLocaleDateString("ja-JP")}
+                    </td>
+                    <td className="py-3 px-2 text-center">
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          onClick={() => toggleUserActive(u.id, u.is_active)}
+                          disabled={actionLoading === u.id}
+                          className={`text-xs px-3 py-1 rounded ${
+                            u.is_active
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          }`}
+                        >
+                          {u.is_active ? "無効化" : "有効化"}
+                        </button>
+                        <button
+                          onClick={() => addExtraCount(u.id)}
+                          disabled={actionLoading === u.id + "-extra"}
+                          className="text-xs px-3 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        >
+                          +1件追加
+                        </button>
+                        <button
+                          onClick={() => openEditModal(u)}
+                          className="text-xs px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        >
+                          編集
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

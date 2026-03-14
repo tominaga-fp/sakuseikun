@@ -398,9 +398,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
-  const isFree = (profile?.plan_type ?? "free") === "free" && !isAdmin;
+  const isMonitor = profile?.is_monitor ?? false;
+  const isUnlimited = isAdmin || isMonitor;
+  const isFree = (profile?.plan_type ?? "free") === "free" && !isUnlimited;
   const [remainingCount, setRemainingCount] = useState(
-    Math.max(0, profile?.extra_count ?? 0)
+    isUnlimited ? Infinity : Math.max(0, (profile?.monthly_limit ?? 1) - (profile?.monthly_count ?? 0) + (profile?.extra_count ?? 0))
   );
   const [showCountModal, setShowCountModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<false | "copy" | "newSession">(false);
@@ -625,7 +627,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   const handleNewSession = async () => {
     // 残り0件ならモーダル表示してブロック
-    if (!isAdmin && remainingCount <= 0) {
+    if (!isUnlimited && remainingCount <= 0) {
       setShowUpgradeModal("newSession");
       return;
     }
@@ -656,7 +658,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   // ─── Consume count ───
   const consumeCount = async () => {
-    if (isAdmin || countConsumedRef.current) return;
+    if (isUnlimited || countConsumedRef.current) return;
     countConsumedRef.current = true;
     try {
       const res = await fetch("/api/consume-count", {
@@ -694,7 +696,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     if (!trimmed || loading) return;
 
     // 初回メッセージ → 確認モーダル
-    if (!countConsumedRef.current && !isAdmin) {
+    if (!countConsumedRef.current && !isUnlimited) {
       pendingMessageRef.current = trimmed;
       setShowCountModal(true);
       return;
@@ -730,7 +732,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     prompt += "上記の情報をもとに、不足があれば質問してください。情報が十分であれば全項目のドラフトを一気に生成してください。";
 
     // 初回メッセージ → 確認モーダル
-    if (!countConsumedRef.current && !isAdmin) {
+    if (!countConsumedRef.current && !isUnlimited) {
       pendingMessageRef.current = prompt;
       setShowCountModal(true);
       return;

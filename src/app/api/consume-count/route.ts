@@ -19,7 +19,7 @@ export async function POST() {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, monthly_count, monthly_limit, extra_count")
+      .select("role, monthly_count, monthly_limit, extra_count, is_monitor")
       .eq("id", user.id)
       .single();
 
@@ -30,24 +30,31 @@ export async function POST() {
       );
     }
 
-    // admin は常に消費なしでOK
-    if (profile.role === "admin") {
+    // admin・is_monitor は常に消費なしでOK
+    if (profile.role === "admin" || profile.is_monitor) {
       return NextResponse.json({ consumed: false, ok: true });
     }
 
-    const extraCount = profile.extra_count ?? 0;
+    // 残り件数 = monthly_limit - monthly_count + extra_count
+    const remaining = (profile.monthly_limit ?? 1) - (profile.monthly_count ?? 0) + (profile.extra_count ?? 0);
 
-    if (extraCount <= 0) {
+    if (remaining <= 0) {
       return NextResponse.json(
         { error: "上限到達", consumed: false, ok: false },
         { status: 429 }
       );
     }
 
-    // extra_countを-1する
+    // extra_count > 0 ならextra_countから消費、そうでなければmonthly_countを+1
+    const extraCount = profile.extra_count ?? 0;
+    const monthlyCount = profile.monthly_count ?? 0;
+    const updateData = extraCount > 0
+      ? { extra_count: extraCount - 1 }
+      : { monthly_count: monthlyCount + 1 };
+
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ extra_count: extraCount - 1 })
+      .update(updateData)
       .eq("id", user.id);
 
     if (updateError) {

@@ -10,7 +10,9 @@ export default function Header({ profile }: { profile: Profile | null }) {
   const supabase = createClient();
   const router = useRouter();
 
-  const initialCount = Math.max(0, profile?.extra_count ?? 0);
+  const isMonitor = profile?.is_monitor ?? false;
+  const isUnlimited = profile?.role === "admin" || isMonitor;
+  const initialCount = isUnlimited ? Infinity : Math.max(0, (profile?.monthly_limit ?? 1) - (profile?.monthly_count ?? 0) + (profile?.extra_count ?? 0));
   const [displayCount, setDisplayCount] = useState(initialCount);
 
   // Listen for count updates from PlanBuilder
@@ -52,7 +54,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
             </Link>
           )}
           <span className="text-sm text-gray-500">
-            残り {displayCount}件
+            {isUnlimited ? "無制限" : `残り ${displayCount}件`}
           </span>
           {profile?.role !== "admin" && (
             <button
