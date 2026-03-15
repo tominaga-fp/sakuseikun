@@ -256,7 +256,7 @@ export default function RegisterPage() {
                   />
                   <span className="text-sm text-gray-600">
                     <a
-                      href="https://tominagajunichi.com/tokusyoho/"
+                      href="https://tominaga-fp.com/sakuseikun/tokusyoho/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-shu hover:underline"
@@ -265,7 +265,7 @@ export default function RegisterPage() {
                     </a>
                     ・
                     <a
-                      href="https://tominagajunichi.com/privacy-policy/"
+                      href="https://tominaga-fp.com/sakuseikun/privacy-policy/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-shu hover:underline"

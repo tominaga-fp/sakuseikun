@@ -8,6 +8,15 @@ export default function Footer() {
           jtominaga@tominaga-fp.com
         </a>
       </p>
+      <p className="space-x-2">
+        <a href="https://tominaga-fp.com/sakuseikun/tokusyoho/" target="_blank" rel="noopener noreferrer" className="hover:underline">
+          特商法
+        </a>
+        <span>|</span>
+        <a href="https://tominaga-fp.com/sakuseikun/privacy-policy/" target="_blank" rel="noopener noreferrer" className="hover:underline">
+          プライバシーポリシー
+        </a>
+      </p>
     </footer>
   );
 }
