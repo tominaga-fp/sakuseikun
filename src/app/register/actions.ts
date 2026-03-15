@@ -69,13 +69,13 @@ export async function notifyNewUser(data: {
   // 2. ユーザー本人への登録完了メール
   const userHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;">
-      <h2 style="color:#c8401a;">登録が完了しました</h2>
+      <h2 style="color:#0f2346;">登録が完了しました</h2>
       <p>${escapeHtml(lastName)} ${escapeHtml(firstName)} 様</p>
       <p>補助金計画書<strong>さくせいくん</strong>へのご登録ありがとうございます。</p>
       <p>メール認証が完了しましたら、以下のURLからログインしてご利用いただけます。</p>
       <p style="margin:24px 0;">
         <a href="https://sakuseikun-nine.vercel.app/login"
-           style="background:#c8401a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+           style="background:#0f2346;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
           ログインする
         </a>
       </p>

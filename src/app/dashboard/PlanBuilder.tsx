@@ -11,8 +11,8 @@ import { Profile, PlanDocument } from "@/types/database";
 const COLORS = {
   ink: "#0a0c10",
   paper: "#f5f2eb",
-  accent: "#c8401a",
-  accentDark: "#a33415",
+  accent: "#0f2346",
+  accentDark: "#0a1830",
   gold: "#b8860b",
   goldLight: "#d4a017",
   white: "#ffffff",
@@ -401,6 +401,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const isMonitor = profile?.is_monitor ?? false;
   const isUnlimited = isAdmin || isMonitor;
   const isFree = (profile?.plan_type ?? "free") === "free" && !isUnlimited;
+  const isCampaignExpired = isFree && new Date() >= new Date("2026-05-01T00:00:00+09:00");
+  const [showCampaignExpiredModal, setShowCampaignExpiredModal] = useState(false);
   const [remainingCount, setRemainingCount] = useState(
     isUnlimited ? Infinity : Math.max(0, (profile?.monthly_limit ?? 1) - (profile?.monthly_count ?? 0) + (profile?.extra_count ?? 0))
   );
@@ -626,6 +628,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   }, []);
 
   const handleNewSession = async () => {
+    // キャンペーン期間終了チェック（無料会員）
+    if (isCampaignExpired) {
+      setShowCampaignExpiredModal(true);
+      return;
+    }
     // 残り0件ならモーダル表示してブロック
     if (!isUnlimited && remainingCount <= 0) {
       setShowUpgradeModal("newSession");
@@ -695,6 +702,12 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
+    // キャンペーン期間終了チェック（無料会員）
+    if (isCampaignExpired) {
+      setShowCampaignExpiredModal(true);
+      return;
+    }
+
     // 初回メッセージ → 確認モーダル
     if (!countConsumedRef.current && !isUnlimited) {
       pendingMessageRef.current = trimmed;
@@ -718,6 +731,12 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   // ─── Generate all sections (no confirm modal, direct send) ───
   const handleGenerateAll = async () => {
     if (loading) return;
+
+    // キャンペーン期間終了チェック（無料会員）
+    if (isCampaignExpired) {
+      setShowCampaignExpiredModal(true);
+      return;
+    }
 
     let prompt = "1\n\n";
     if (hpUrl.trim()) {
@@ -1805,6 +1824,25 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           </div>
         );
       })()}
+
+      {/* Campaign expired modal (free users after 2026-05-01) */}
+      {showCampaignExpiredModal && (
+        <div
+          style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+          onClick={() => setShowCampaignExpiredModal(false)}
+        >
+          <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "440px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>キャンペーン期間が終了しました</div>
+            <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
+              続けてご利用いただくには有料プランへのご登録が必要です。作成済みのデータは保持されています。
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+              <button onClick={() => setShowCampaignExpiredModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
+              <button onClick={() => { window.open(paymentUrl, "_blank"); setShowCampaignExpiredModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.gold, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>有料プランを見る</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bounce animation */}
       <style>{`

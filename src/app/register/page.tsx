@@ -157,7 +157,7 @@ export default function RegisterPage() {
                       value="consultant"
                       checked={userType === "consultant"}
                       onChange={() => setUserType("consultant")}
-                      className="accent-[#c8401a]"
+                      className="accent-[#0f2346]"
                     />
                     <span className="text-sm text-gray-700">他社の申請支援</span>
                   </label>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                       value="business"
                       checked={userType === "business"}
                       onChange={() => setUserType("business")}
-                      className="accent-[#c8401a]"
+                      className="accent-[#0f2346]"
                     />
                     <span className="text-sm text-gray-700">自社で申請</span>
                   </label>
@@ -252,11 +252,11 @@ export default function RegisterPage() {
                     type="checkbox"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-1 accent-[#c8401a]"
+                    className="mt-1 accent-[#0f2346]"
                   />
                   <span className="text-sm text-gray-600">
                     <a
-                      href="https://tominaga-fp.com/sakuseikun/tokusyoho/"
+                      href="/terms"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-shu hover:underline"

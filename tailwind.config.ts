@@ -10,9 +10,11 @@ const config: Config = {
     extend: {
       colors: {
         washi: "#f5f2eb",
-        shu: "#c8401a",
-        "shu-dark": "#a33415",
-        "shu-light": "#e8613d",
+        shu: "#0f2346",
+        "shu-dark": "#0a1830",
+        "shu-light": "#1a3460",
+        gold: "#b8860b",
+        "gold-dark": "#966d09",
         foreground: "#333333",
       },
       fontFamily: {
