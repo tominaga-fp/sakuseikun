@@ -748,7 +748,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     if (hearing.trim()) {
       prompt += `STEP2のヒアリング文字起こし:\n${hearing.trim()}\n\n`;
     }
-    prompt += "上記の情報をもとに、不足があれば質問してください。情報が十分であれば全項目のドラフトを一気に生成してください。";
+    prompt += "上記の情報をもとに、不足があれば質問してください。情報が十分であれば、まず経営計画書のドラフトを生成してください。";
 
     // 初回メッセージ → 確認モーダル
     if (!countConsumedRef.current && !isUnlimited) {
