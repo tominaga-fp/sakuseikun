@@ -5,7 +5,11 @@ export const metadata: Metadata = {
   title: "補助金計画書さくせいくん",
   description: "持続化補助金の計画書を簡単に作成できるWebサービス",
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "16x16 32x32" },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
