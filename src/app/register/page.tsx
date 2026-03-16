@@ -187,6 +187,9 @@ export default function RegisterPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shu focus:border-transparent outline-none bg-white text-sm"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  ※ Gmailまたはドメインメールでのご登録を推奨します。Yahoo!メール・iCloudメール等は確認メールが届かない場合があります。
+                </p>
               </div>
 
               {/* パスワード */}
