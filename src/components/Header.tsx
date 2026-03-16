@@ -40,7 +40,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="font-bold text-lg flex items-center gap-2">
-            <Image src="/app-icon.png" alt="" width={32} height={32} className="h-8 w-8" />
+            <Image src="/app-icon.png" alt="" width={36} height={36} className="h-9 w-9 rounded-none" />
             補助金計画書<span className="text-shu">さくせいくん</span>
           </Link>
           <span className="text-[10px] text-gray-400 hidden sm:inline">運営：とみながFP事務所</span>
