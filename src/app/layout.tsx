@@ -6,10 +6,11 @@ export const metadata: Metadata = {
   description: "持続化補助金の計画書を簡単に作成できるWebサービス",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "16x16 32x32" },
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: "/apple-icon.png",
+    apple: { url: "/apple-icon.png", sizes: "180x180" },
   },
 };
 
