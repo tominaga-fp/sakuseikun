@@ -14,6 +14,7 @@ export interface Profile {
   extra_count: number;
   plan_type: "free" | "monthly_1" | "monthly_3" | "yearly";
   count_reset_at: string;
+  referral_code: string | null;
   agent_code: string | null;
   referred_by: string | null;
   created_at: string;

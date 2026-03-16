@@ -34,6 +34,9 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   // user_typeフィルター
   const [userTypeFilter, setUserTypeFilter] = useState<"all" | "business" | "consultant">("all");
 
+  // 紹介コードフィルター
+  const [referralFilter, setReferralFilter] = useState("");
+
   // 売上フィルター
   const [salesFilterMonth, setSalesFilterMonth] = useState("");
 
@@ -139,7 +142,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     const headers = [
       "id", "email", "last_name", "first_name", "company_name", "user_type",
       "role", "is_active", "is_monitor", "monthly_count", "monthly_limit",
-      "extra_count", "plan_type", "count_reset_at", "agent_code", "referred_by",
+      "extra_count", "plan_type", "count_reset_at", "referral_code", "agent_code", "referred_by",
       "created_at", "updated_at",
     ];
     const escape = (v: unknown) => {
@@ -162,9 +165,16 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   };
 
   const filteredUserList = useMemo(() => {
-    if (userTypeFilter === "all") return userList;
-    return userList.filter((u) => u.user_type === userTypeFilter);
-  }, [userList, userTypeFilter]);
+    let list = userList;
+    if (userTypeFilter !== "all") {
+      list = list.filter((u) => u.user_type === userTypeFilter);
+    }
+    if (referralFilter.trim()) {
+      const q = referralFilter.trim().toLowerCase();
+      list = list.filter((u) => u.referral_code?.toLowerCase().includes(q));
+    }
+    return list;
+  }, [userList, userTypeFilter, referralFilter]);
 
   const updateUserRole = async (userId: string, role: string) => {
     setActionLoading(userId);
@@ -258,6 +268,14 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
               <option value="business">事業者（{userList.filter((u) => u.user_type === "business").length}）</option>
               <option value="consultant">コンサルタント（{userList.filter((u) => u.user_type === "consultant").length}）</option>
             </select>
+            <label className="text-sm text-gray-500">紹介コード：</label>
+            <input
+              type="text"
+              value={referralFilter}
+              onChange={(e) => setReferralFilter(e.target.value)}
+              placeholder="コードで絞り込み"
+              className="text-sm border rounded px-2 py-1 w-40"
+            />
             <button
               onClick={exportCSV}
               className="ml-auto text-xs px-4 py-1.5 rounded bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
@@ -273,6 +291,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
                 <th className="text-left py-3 px-2">氏名</th>
                 <th className="text-left py-3 px-2">会社名</th>
                 <th className="text-center py-3 px-2">種別</th>
+                <th className="text-left py-3 px-2">紹介コード</th>
                 <th className="text-left py-3 px-2">ロール</th>
                 <th className="text-center py-3 px-2">残数</th>
                 <th className="text-center py-3 px-2">モニター</th>
@@ -300,6 +319,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
                         {u.user_type === "consultant" ? "コンサル" : "事業者"}
                       </span>
                     </td>
+                    <td className="py-3 px-2 text-xs text-gray-600 font-mono">{u.referral_code || "—"}</td>
                     <td className="py-3 px-2">
                       <select
                         value={u.role}
