@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Profile } from "@/types/database";
 
 export default function Header({ profile }: { profile: Profile | null }) {
@@ -38,7 +39,8 @@ export default function Header({ profile }: { profile: Profile | null }) {
     <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="font-bold text-lg">
+          <Link href="/dashboard" className="font-bold text-lg flex items-center gap-2">
+            <Image src="/app-icon.png" alt="" width={32} height={32} className="h-8 w-8" />
             補助金計画書<span className="text-shu">さくせいくん</span>
           </Link>
           <span className="text-[10px] text-gray-400 hidden sm:inline">運営：とみながFP事務所</span>
