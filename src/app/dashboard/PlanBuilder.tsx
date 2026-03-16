@@ -741,6 +741,20 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     let prompt = "1\n\n";
     if (hpUrl.trim()) {
       prompt += `STEP1のHP URL: ${hpUrl.trim()}\n\n`;
+      // サーバーサイドでHPコンテンツを取得
+      try {
+        const hpRes = await fetch("/api/fetch-hp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: hpUrl.trim() }),
+        });
+        if (hpRes.ok) {
+          const hpData = await hpRes.json();
+          prompt += `【以下はHPから取得した実際のテキスト内容です。この内容のみを根拠に情報を抽出してください。ここに記載のない情報は【要確認】としてください。】\n${hpData.content}\n\n`;
+        }
+      } catch {
+        // HP取得失敗時はURL情報のみで継続
+      }
     }
     if (businessType.trim()) {
       prompt += `社名・屋号: ${businessType.trim()}\n\n`;
