@@ -34,7 +34,8 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname === "/login" ||
     pathname === "/register" ||
-    pathname === "/forgot-password";
+    pathname === "/forgot-password" ||
+    pathname === "/lp";
   const isAuthCallback = pathname.startsWith("/api/auth");
   const isApiRoute = pathname.startsWith("/api/");
 
@@ -46,7 +47,7 @@ export async function updateSession(request: NextRequest) {
 
   // ログイン済みでも /login はそのまま表示（毎回ID/PW入力させる）
   // / と /register と /forgot-password のみリダイレクト
-  if (user && isPublicPage && pathname !== "/login") {
+  if (user && isPublicPage && pathname !== "/login" && pathname !== "/lp") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
 import { notifyNewUser } from "./actions";
 import Footer from "@/components/Footer";
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const isMonitor = searchParams.get("ref") === "monitor";
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -53,6 +57,7 @@ export default function RegisterPage() {
             company_name: companyName,
             user_type: userType,
             referral_code: referralCode || null,
+            ...(isMonitor ? { is_monitor: true } : {}),
           },
         },
       });
@@ -306,5 +311,13 @@ export default function RegisterPage() {
         <Footer />
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
