@@ -1827,12 +1827,12 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "400px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
               <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>新しい会話を開始できません</div>
               <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-                無料プランの1件を使用済みです。続けてご利用いただくにはベーシックプランをご購入ください。
+                無料プランの1件を使用済みです。続けてご利用いただくには1件追加（¥9,800）をご購入ください。
               </div>
               <div style={{ fontSize: "11px", color: COLORS.accent, fontWeight: 600, marginBottom: "16px" }}>※ 第19回限定・2026年4月30日まで有効</div>
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
                 <button onClick={() => setShowUpgradeModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
-                <button onClick={() => { window.open(paymentUrl, "_blank"); setShowUpgradeModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.accent, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>ベーシックプラン（¥9,800）</button>
+                <button onClick={() => { window.open(paymentUrl, "_blank"); setShowUpgradeModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.accent, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>1件追加（¥9,800）</button>
               </div>
             </div>
           </div>
