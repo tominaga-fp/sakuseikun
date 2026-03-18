@@ -209,7 +209,7 @@ export default function LpPage() {
         {/* HEADER */}
         <header className="header">
           <a href="#" className="logo">
-            <span className="logo-badge">さ</span>
+            <img src="/icon.png" alt="" width={32} height={32} style={{ borderRadius: '6px' }} />
             補助金計画書さくせいくん
           </a>
           <nav className="header-nav">
@@ -217,7 +217,7 @@ export default function LpPage() {
             <a href="#how">使い方</a>
             <a href="#bonus">特典</a>
             <a href="#faq">FAQ</a>
-            <a href={CTA_HREF} className="btn-sm">
+            <a href={CTA_HREF} className="btn-sm" style={{ color: '#ffffff' }}>
               無料登録
             </a>
           </nav>
