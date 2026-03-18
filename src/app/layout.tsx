@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "補助金計画書さくせいくん",
   description: "持続化補助金の計画書を簡単に作成できるWebサービス",
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.png',
     apple: '/apple-touch-icon.png',
   },
 };
