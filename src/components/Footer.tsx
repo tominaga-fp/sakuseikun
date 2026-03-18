@@ -4,8 +4,8 @@ export default function Footer() {
       <p>運営：とみながFP事務所</p>
       <p>
         お問い合わせ：
-        <a href="mailto:jtominaga@tominaga-fp.com" className="hover:underline">
-          jtominaga@tominaga-fp.com
+        <a href="mailto:info@tominaga-fp.com" className="hover:underline">
+          info@tominaga-fp.com
         </a>
       </p>
       <p className="space-x-2">

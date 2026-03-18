@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 
 function RegisterForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isMonitor = searchParams.get("ref") === "monitor";
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -66,13 +67,20 @@ function RegisterForm() {
       // 管理者への通知メール（失敗しても登録は成功扱い）
       notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});
 
-      setMessage("確認メールを送信しました。メールを確認してアカウントを有効化してください。");
+      setMessage("登録が完了しました。");
     } catch (err) {
       setError(err instanceof Error ? err.message : "登録に失敗しました");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => router.push("/dashboard"), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [message, router]);
 
   const isFormValid =
     lastName.trim() &&
@@ -96,12 +104,9 @@ function RegisterForm() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           {message ? (
             <div className="text-center py-4">
-              <div className="text-green-600 text-sm bg-green-50 p-4 rounded-lg mb-4">
+              <div className="text-green-600 text-sm bg-green-50 p-4 rounded-lg">
                 {message}
               </div>
-              <Link href="/login" className="text-sm text-shu hover:underline">
-                ログインページへ
-              </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
