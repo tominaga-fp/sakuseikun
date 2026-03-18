@@ -59,8 +59,8 @@ function RegisterForm() {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
 
-      // 管理者への通知メール（失敗しても登録は成功扱い）
-      notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});
+      // 登録完了メール送信（失敗しても登録は成功扱い）
+      await notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});
 
       setMessage("登録が完了しました。");
     } catch (err) {
