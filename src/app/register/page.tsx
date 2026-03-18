@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
-import { notifyNewUser, registerUser } from "./actions";
+import { registerUser } from "./actions";
 import Footer from "@/components/Footer";
 
 function RegisterForm() {
@@ -58,9 +58,6 @@ function RegisterForm() {
       // クライアント側でサインインしてセッションを取得
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
-
-      // 登録完了メール送信（失敗しても登録は成功扱い）
-      await notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});
 
       setMessage("登録が完了しました。");
     } catch (err) {

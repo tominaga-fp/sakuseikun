@@ -64,27 +64,52 @@ export async function registerUser(data: {
   referralCode: string;
   isMonitor: boolean;
 }): Promise<{ error: string | null }> {
-  const adminClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  console.log("[registerUser] 開始 email:", data.email);
 
-  const { error } = await adminClient.auth.admin.createUser({
-    email: data.email,
-    password: data.password,
-    email_confirm: true, // 確認メールを送らずメール認証済みとして登録
-    user_metadata: {
-      last_name: data.lastName,
-      first_name: data.firstName,
-      company_name: data.companyName,
-      user_type: data.userType,
-      referral_code: data.referralCode || null,
-      ...(data.isMonitor ? { is_monitor: true } : {}),
-    },
-  });
+  try {
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
-  return { error: error?.message ?? null };
+    const { error } = await adminClient.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: {
+        last_name: data.lastName,
+        first_name: data.firstName,
+        company_name: data.companyName,
+        user_type: data.userType,
+        referral_code: data.referralCode || null,
+        ...(data.isMonitor ? { is_monitor: true } : {}),
+      },
+    });
+
+    if (error) {
+      console.error("[registerUser] ユーザー作成エラー:", error.message);
+      return { error: error.message };
+    }
+
+    console.log("[registerUser] ユーザー作成成功 - メール送信開始");
+
+    // ユーザー作成成功後に通知メールをここで送信
+    // （セッション確立前に呼ぶことでミドルウェアのリダイレクト問題を回避）
+    await notifyNewUser({
+      email: data.email,
+      lastName: data.lastName,
+      firstName: data.firstName,
+      companyName: data.companyName,
+      userType: data.userType,
+    });
+
+    return { error: null };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[registerUser] 予期しないエラー:", message);
+    return { error: message };
+  }
 }
 
 export async function notifyNewUser(data: {
