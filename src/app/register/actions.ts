@@ -16,30 +16,41 @@ function escapeHtml(str: string): string {
 }
 
 async function sendMail(to: string, subject: string, htmlContent: string) {
+  console.log("[sendMail] 開始 to:", to, "subject:", subject);
+
   if (!SENDGRID_API_KEY) {
-    console.warn("SENDGRID_API_KEY未設定のためメール送信スキップ");
+    console.error("[sendMail] SENDGRID_API_KEY未設定 - 送信スキップ");
+    return;
+  }
+  console.log("[sendMail] SENDGRID_API_KEY確認OK, FROM:", FROM_EMAIL);
+
+  const body = JSON.stringify({
+    personalizations: [{ to: [{ email: to }] }],
+    from: { email: FROM_EMAIL, name: "さくせいくん" },
+    subject,
+    content: [{ type: "text/html", value: htmlContent }],
+  });
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+  } catch (fetchErr) {
+    console.error("[sendMail] fetchエラー:", fetchErr);
     return;
   }
 
-  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${SENDGRID_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      personalizations: [{ to: [{ email: to }] }],
-      from: { email: FROM_EMAIL, name: "さくせいくん" },
-      subject,
-      content: [{ type: "text/html", value: htmlContent }],
-    }),
-  });
-
   if (!res.ok) {
     const errText = await res.text();
-    console.error("SendGrid送信エラー:", res.status, errText);
+    console.error("[sendMail] SendGridエラー status:", res.status, "body:", errText);
   } else {
-    console.log("メール送信完了:", to, subject);
+    console.log("[sendMail] 送信成功 status:", res.status, "to:", to);
   }
 }
 
@@ -84,6 +95,7 @@ export async function notifyNewUser(data: {
   userType: string;
 }) {
   const { email, lastName, firstName, companyName, userType } = data;
+  console.log("[notifyNewUser] 呼び出し開始 email:", email);
 
   const formattedDate = new Date().toLocaleString("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -123,11 +135,13 @@ export async function notifyNewUser(data: {
   `;
 
   try {
+    console.log("[notifyNewUser] Promise.all 開始");
     await Promise.all([
       sendMail(NOTIFY_TO, `【さくせいくん】新規登録: ${lastName}${firstName} (${email})`, adminHtml),
       sendMail(email, "【さくせいくん】ご登録ありがとうございます", userHtml),
     ]);
+    console.log("[notifyNewUser] Promise.all 完了");
   } catch (err) {
-    console.error("通知メール送信エラー:", err);
+    console.error("[notifyNewUser] エラー:", err);
   }
 }

@@ -857,7 +857,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         }}
       >
         <span style={{ fontSize: "13px", color: COLORS.gray700 }}>
-          お試しプランをご利用中です。コピー・活用にはベーシックプランが必要です。
+          1件まで無料でご利用いただけます。2件目以降は1件追加（¥9,800）が必要です。
         </span>
         <button
           onClick={() => window.open(paymentUrl, "_blank")}
