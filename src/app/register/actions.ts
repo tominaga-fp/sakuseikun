@@ -2,7 +2,7 @@
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const NOTIFY_TO = "jtominaga@tominaga-fp.com";
-const FROM_EMAIL = "jtominaga@tominaga-fp.com";
+const FROM_EMAIL = "info@tominaga-fp.com";
 
 function escapeHtml(str: string): string {
   if (!str) return "";
@@ -68,29 +68,29 @@ export async function notifyNewUser(data: {
 
   // 2. ユーザー本人への登録完了メール
   const userHtml = `
-    <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;">
-      <h2 style="color:#0f2346;">登録が完了しました</h2>
+    <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;line-height:1.8;">
       <p>${escapeHtml(lastName)} ${escapeHtml(firstName)} 様</p>
-      <p>補助金計画書<strong>さくせいくん</strong>へのご登録ありがとうございます。</p>
-      <p>メール認証が完了しましたら、以下のURLからログインしてご利用いただけます。</p>
-      <p style="margin:24px 0;">
-        <a href="https://sakuseikun-nine.vercel.app/login"
-           style="background:#0f2346;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-          ログインする
-        </a>
+      <p>補助金計画書さくせいくんへのご登録ありがとうございます。</p>
+      <p>以下のURLからログインしてご利用ください。<br />
+        <a href="https://sakuseikun.jp/login" style="color:#0f2346;">https://sakuseikun.jp/login</a>
       </p>
-      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
-      <p style="font-size:12px;color:#999;">
-        このメールは「さくせいくん」から自動送信されています。<br />
-        ご不明な点がございましたら jtominaga@tominaga-fp.com までお問い合わせください。
+      <p style="margin-top:24px;">＜最初にやること＞<br />
+        ① 申請する事業者さんのホームページURLを左の「HP URL」欄に入力<br />
+        ② ヒアリングした内容（文字起こし・メモ）を「ヒアリング」欄に貼り付け<br />
+        ③「情報を送信」を押すだけで計画書のドラフトが生成されます
       </p>
+      <p style="margin-top:24px;">
+        ご不明な点はこちらまでご連絡ください。<br />
+        <a href="mailto:info@tominaga-fp.com" style="color:#0f2346;">info@tominaga-fp.com</a>
+      </p>
+      <p>とみながFP事務所　富永淳一</p>
     </div>
   `;
 
   try {
     await Promise.all([
       sendMail(NOTIFY_TO, `【さくせいくん】新規登録: ${lastName}${firstName} (${email})`, adminHtml),
-      sendMail(email, "【さくせいくん】登録が完了しました", userHtml),
+      sendMail(email, "【さくせいくん】ご登録ありがとうございます", userHtml),
     ]);
   } catch (err) {
     console.error("通知メール送信エラー:", err);
