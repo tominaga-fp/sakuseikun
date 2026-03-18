@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import Link from "next/link";
-import { notifyNewUser } from "./actions";
+import { notifyNewUser, registerUser } from "./actions";
 import Footer from "@/components/Footer";
 
 function RegisterForm() {
@@ -48,21 +48,16 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            last_name: lastName,
-            first_name: firstName,
-            company_name: companyName,
-            user_type: userType,
-            referral_code: referralCode || null,
-            ...(isMonitor ? { is_monitor: true } : {}),
-          },
-        },
+      // Admin API でユーザー作成（email_confirm: true により確認メール送信なし）
+      const { error: registerError } = await registerUser({
+        email, password, lastName, firstName, companyName, userType,
+        referralCode, isMonitor,
       });
-      if (error) throw error;
+      if (registerError) throw new Error(registerError);
+
+      // クライアント側でサインインしてセッションを取得
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
 
       // 管理者への通知メール（失敗しても登録は成功扱い）
       notifyNewUser({ email, lastName, firstName, companyName, userType }).catch(() => {});

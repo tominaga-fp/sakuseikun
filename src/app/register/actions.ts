@@ -1,5 +1,7 @@
 "use server";
 
+import { createClient } from "@supabase/supabase-js";
+
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const NOTIFY_TO = "jtominaga@tominaga-fp.com";
 const FROM_EMAIL = "info@tominaga-fp.com";
@@ -39,6 +41,39 @@ async function sendMail(to: string, subject: string, htmlContent: string) {
   } else {
     console.log("メール送信完了:", to, subject);
   }
+}
+
+export async function registerUser(data: {
+  email: string;
+  password: string;
+  lastName: string;
+  firstName: string;
+  companyName: string;
+  userType: string;
+  referralCode: string;
+  isMonitor: boolean;
+}): Promise<{ error: string | null }> {
+  const adminClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
+  const { error } = await adminClient.auth.admin.createUser({
+    email: data.email,
+    password: data.password,
+    email_confirm: true, // 確認メールを送らずメール認証済みとして登録
+    user_metadata: {
+      last_name: data.lastName,
+      first_name: data.firstName,
+      company_name: data.companyName,
+      user_type: data.userType,
+      referral_code: data.referralCode || null,
+      ...(data.isMonitor ? { is_monitor: true } : {}),
+    },
+  });
+
+  return { error: error?.message ?? null };
 }
 
 export async function notifyNewUser(data: {
