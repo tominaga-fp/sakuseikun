@@ -28,19 +28,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-300HECBPHV"
-        strategy="afterInteractive"
-      />
-      <Script id="gtag-init" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-300HECBPHV');
-        `}
-      </Script>
-      <body className="washi-bg min-h-screen antialiased">{children}</body>
+      <body className="washi-bg min-h-screen antialiased">
+        {children}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-300HECBPHV"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-300HECBPHV');
+          `}
+        </Script>
+      </body>
     </html>
   );
 }
