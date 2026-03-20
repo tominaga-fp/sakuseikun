@@ -1860,7 +1860,6 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
       {/* Bounce animation */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
         @keyframes bounce {
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-6px); }
