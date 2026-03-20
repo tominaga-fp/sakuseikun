@@ -603,13 +603,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         return;
       }
 
-      const { data } = await supabase
+      const { data: rows } = await supabase
         .from("chat_sessions")
         .select("*")
         .eq("user_id", profile.id)
         .order("updated_at", { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
+      const data = rows?.[0] ?? null;
 
       if (data && Array.isArray(data.messages) && data.messages.length > 0) {
         sessionIdRef.current = data.id;
