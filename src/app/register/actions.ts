@@ -151,7 +151,16 @@ export async function notifyNewUser(data: {
         ② ヒアリングした内容（文字起こし・メモ）を「ヒアリング」欄に貼り付け<br />
         ③「情報を送信」を押すだけで計画書のドラフトが生成されます
       </p>
-      <p style="margin-top:24px;">
+      <hr style="border:none;border-top:1px solid #ccc;margin:24px 0;" />
+      <p style="margin-top:0;">
+        【登録特典】<br />
+        補助金コンサルタントが使っている<br />
+        「持続化補助金 採択ヒアリングシート」をプレゼントします。<br /><br />
+        ▼ダウンロードはこちら<br />
+        <a href="https://drive.google.com/uc?export=download&id=1brdfxIAiwAITs0_EeWIkNg7zJ-lZgX7i" style="color:#0f2346;">https://drive.google.com/uc?export=download&id=1brdfxIAiwAITs0_EeWIkNg7zJ-lZgX7i</a>
+      </p>
+      <hr style="border:none;border-top:1px solid #ccc;margin:24px 0;" />
+      <p style="margin-top:0;">
         ご不明な点はこちらまでご連絡ください。<br />
         <a href="mailto:info@tominaga-fp.com" style="color:#0f2346;">info@tominaga-fp.com</a>
       </p>

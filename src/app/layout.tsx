@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-JZFBG99C1V"
+        src="https://www.googletagmanager.com/gtag/js?id=G-300HECBPHV"
         strategy="afterInteractive"
       />
       <Script id="gtag-init" strategy="afterInteractive">
@@ -37,7 +37,7 @@ export default function RootLayout({
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-JZFBG99C1V');
+          gtag('config', 'G-300HECBPHV');
         `}
       </Script>
       <body className="washi-bg min-h-screen antialiased">{children}</body>
