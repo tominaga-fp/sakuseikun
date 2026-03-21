@@ -54,6 +54,39 @@ async function sendMail(to: string, subject: string, htmlContent: string) {
   }
 }
 
+async function sendSystemeWebhook(data: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+}) {
+  const webhookUrl = process.env.SYSTEME_IO_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.log("[sendSystemeWebhook] SYSTEME_IO_WEBHOOK_URL未設定 - スキップ");
+    return;
+  }
+  try {
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: data.email,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        company_name: data.companyName,
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("[sendSystemeWebhook] エラー status:", res.status, "body:", errText);
+    } else {
+      console.log("[sendSystemeWebhook] 送信成功 status:", res.status);
+    }
+  } catch (err) {
+    console.error("[sendSystemeWebhook] fetchエラー:", err);
+  }
+}
+
 export async function registerUser(data: {
   email: string;
   password: string;
@@ -96,13 +129,21 @@ export async function registerUser(data: {
 
     // ユーザー作成成功後に通知メールをここで送信
     // （セッション確立前に呼ぶことでミドルウェアのリダイレクト問題を回避）
-    await notifyNewUser({
-      email: data.email,
-      lastName: data.lastName,
-      firstName: data.firstName,
-      companyName: data.companyName,
-      userType: data.userType,
-    });
+    await Promise.all([
+      notifyNewUser({
+        email: data.email,
+        lastName: data.lastName,
+        firstName: data.firstName,
+        companyName: data.companyName,
+        userType: data.userType,
+      }),
+      sendSystemeWebhook({
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        companyName: data.companyName,
+      }),
+    ]);
 
     return { error: null };
   } catch (err) {
