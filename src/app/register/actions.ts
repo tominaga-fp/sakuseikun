@@ -54,36 +54,38 @@ async function sendMail(to: string, subject: string, htmlContent: string) {
   }
 }
 
-async function sendSystemeWebhook(data: {
+async function addSystemeContact(data: {
   email: string;
   firstName: string;
   lastName: string;
-  companyName: string;
 }) {
-  const webhookUrl = process.env.SYSTEME_IO_WEBHOOK_URL;
-  if (!webhookUrl) {
-    console.log("[sendSystemeWebhook] SYSTEME_IO_WEBHOOK_URL未設定 - スキップ");
+  const apiKey = process.env.SYSTEME_IO_API_KEY;
+  if (!apiKey) {
+    console.log("[addSystemeContact] SYSTEME_IO_API_KEY未設定 - スキップ");
     return;
   }
   try {
-    const res = await fetch(webhookUrl, {
+    const res = await fetch("https://api.systeme.io/api/contacts", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
       body: JSON.stringify({
         email: data.email,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        company_name: data.companyName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        tags: [{ name: "さくせいくん19回無料登録" }],
       }),
     });
     if (!res.ok) {
       const errText = await res.text();
-      console.error("[sendSystemeWebhook] エラー status:", res.status, "body:", errText);
+      console.error("[addSystemeContact] エラー status:", res.status, "body:", errText);
     } else {
-      console.log("[sendSystemeWebhook] 送信成功 status:", res.status);
+      console.log("[addSystemeContact] 追加成功 status:", res.status);
     }
   } catch (err) {
-    console.error("[sendSystemeWebhook] fetchエラー:", err);
+    console.error("[addSystemeContact] fetchエラー:", err);
   }
 }
 
@@ -137,11 +139,10 @@ export async function registerUser(data: {
         companyName: data.companyName,
         userType: data.userType,
       }),
-      sendSystemeWebhook({
+      addSystemeContact({
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        companyName: data.companyName,
       }),
     ]);
 
