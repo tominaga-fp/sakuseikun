@@ -54,6 +54,35 @@ async function sendMail(to: string, subject: string, htmlContent: string) {
   }
 }
 
+const SYSTEME_TAG_NAME = "さくせいくん19回無料登録";
+
+async function getOrCreateSystemeTagId(apiKey: string): Promise<number | null> {
+  // タグ一覧を取得して名前で検索
+  const listRes = await fetch("https://api.systeme.io/api/tags?limit=100", {
+    headers: { "X-API-Key": apiKey },
+  });
+  if (listRes.ok) {
+    const listData = await listRes.json();
+    const items: { id: number; name: string }[] = listData.items ?? [];
+    const found = items.find((t) => t.name === SYSTEME_TAG_NAME);
+    if (found) return found.id;
+  }
+
+  // 存在しなければ作成
+  const createRes = await fetch("https://api.systeme.io/api/tags", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+    body: JSON.stringify({ name: SYSTEME_TAG_NAME }),
+  });
+  if (!createRes.ok) {
+    const errText = await createRes.text();
+    console.error("[getOrCreateSystemeTagId] タグ作成エラー:", createRes.status, errText);
+    return null;
+  }
+  const tagData = await createRes.json();
+  return tagData.id ?? null;
+}
+
 async function addSystemeContact(data: {
   email: string;
   firstName: string;
@@ -65,6 +94,7 @@ async function addSystemeContact(data: {
     return;
   }
   try {
+    // 1. コンタクト作成
     const res = await fetch("https://api.systeme.io/api/contacts", {
       method: "POST",
       headers: {
@@ -73,16 +103,42 @@ async function addSystemeContact(data: {
       },
       body: JSON.stringify({
         email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        tags: [{ name: "さくせいくん19回無料登録" }],
+        fields: [
+          { slug: "first_name", value: data.firstName },
+          { slug: "last_name", value: data.lastName },
+        ],
       }),
     });
     if (!res.ok) {
       const errText = await res.text();
-      console.error("[addSystemeContact] エラー status:", res.status, "body:", errText);
+      console.error("[addSystemeContact] コンタクト作成エラー status:", res.status, "body:", errText);
+      return;
+    }
+    const contact = await res.json();
+    const contactId: number = contact.id;
+    console.log("[addSystemeContact] コンタクト作成成功 id:", contactId);
+
+    // 2. タグID取得または作成
+    const tagId = await getOrCreateSystemeTagId(apiKey);
+    if (!tagId) {
+      console.error("[addSystemeContact] タグID取得失敗");
+      return;
+    }
+
+    // 3. タグをコンタクトに付与
+    const tagRes = await fetch(`https://api.systeme.io/api/contacts/${contactId}/tags`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+      },
+      body: JSON.stringify({ tagId }),
+    });
+    if (!tagRes.ok) {
+      const errText = await tagRes.text();
+      console.error("[addSystemeContact] タグ付与エラー status:", tagRes.status, "body:", errText);
     } else {
-      console.log("[addSystemeContact] 追加成功 status:", res.status);
+      console.log("[addSystemeContact] タグ付与成功 tagId:", tagId);
     }
   } catch (err) {
     console.error("[addSystemeContact] fetchエラー:", err);
