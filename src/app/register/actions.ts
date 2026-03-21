@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const NOTIFY_TO = "jtominaga@tominaga-fp.com";
-const FROM_EMAIL = "info@tominaga-fp.com";
+const FROM_EMAIL = "info@sakuseikun.jp";
 
 function escapeHtml(str: string): string {
   if (!str) return "";
