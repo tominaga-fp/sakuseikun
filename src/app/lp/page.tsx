@@ -1020,10 +1020,9 @@ export default function LpPage() {
         <section style={{padding: '3rem 1rem 2rem', maxWidth: '860px', margin: '0 auto'}}>
           <h2 style={{fontSize: '28px', fontWeight: 500, margin: '0 0 2rem'}}>料金プラン</h2>
           <div style={{background: '#1a2744', borderRadius: '12px', padding: '2rem 2.5rem', marginBottom: '2rem'}}>
-            <span style={{display: 'inline-block', background: '#c8a04a', color: '#fff', fontSize: '12px', fontWeight: 500, padding: '4px 14px', borderRadius: '4px', marginBottom: '1rem', letterSpacing: '0.05em'}}>モニター募集中</span>
-            <p style={{fontSize: '24px', fontWeight: 500, color: '#fff', margin: '0 0 0.75rem'}}>今なら1件分を無料で体験いただけます</p>
-            <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', margin: '0 0 0.75rem', lineHeight: 1.7}}>生成されたテキストはそのままご利用可能。まず品質をお確かめください。</p>
-            <p style={{fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0}}>（通常：月額29,800円〜）</p>
+            <span style={{display: 'inline-block', background: '#c8a04a', color: '#fff', fontSize: '18px', fontWeight: 500, padding: '8px 20px', borderRadius: '4px', marginBottom: '1rem', letterSpacing: '0.05em'}}>無料モニター募集中</span>
+            <p style={{fontSize: '24px', fontWeight: 500, color: '#fff', margin: '0 0 0.75rem'}}>4月30日まで計画書の作成が無制限で体験いただけます</p>
+            <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7}}>生成されたテキストはそのままご利用可能。まずは品質をお確かめください。</p>
           </div>
           <p style={{fontSize: '11px', color: '#888', margin: '0 0 0.75rem'}}>通常料金（5月以降）</p>
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem'}}>
