@@ -142,8 +142,8 @@ export async function notifyNewUser(data: {
   const userHtml = `
     <div style="max-width:600px;margin:0 auto;font-family:sans-serif;color:#333;line-height:1.8;">
       <p>${escapeHtml(lastName)} ${escapeHtml(firstName)} 様</p>
-      <p>補助金計画書さくせいくんへのご登録ありがとうございます。</p>
-      <p>以下のURLからログインしてご利用ください。<br />
+      <p>補助金計画書さくせいくんへのご登録ありがとうございます。<br />
+        以下のURLからログインしてご利用ください。<br />
         <a href="https://sakuseikun.jp/login" style="color:#0f2346;">https://sakuseikun.jp/login</a>
       </p>
       <p style="margin-top:24px;">＜最初にやること＞<br />
@@ -151,10 +151,11 @@ export async function notifyNewUser(data: {
         ② ヒアリングした内容（文字起こし・メモ）を「ヒアリング」欄に貼り付け<br />
         ③「情報を送信」を押すだけで計画書のドラフトが生成されます
       </p>
+      <p>まずログインして、1件試してみてください。</p>
       <hr style="border:none;border-top:1px solid #ccc;margin:24px 0;" />
       <p style="margin-top:0;">
         【登録特典】<br />
-        補助金コンサルタントが使っている<br />
+        補助金支援の専門家が使っている<br />
         「持続化補助金 採択ヒアリングシート」をプレゼントします。<br /><br />
         ▼ダウンロードはこちら<br />
         <a href="https://drive.google.com/uc?export=download&id=1brdfxIAiwAITs0_EeWIkNg7zJ-lZgX7i" style="color:#0f2346;">https://drive.google.com/uc?export=download&id=1brdfxIAiwAITs0_EeWIkNg7zJ-lZgX7i</a>
@@ -172,7 +173,7 @@ export async function notifyNewUser(data: {
     console.log("[notifyNewUser] Promise.all 開始");
     await Promise.all([
       sendMail(NOTIFY_TO, `【さくせいくん】新規登録: ${lastName}${firstName} (${email})`, adminHtml),
-      sendMail(email, "【さくせいくん】ご登録ありがとうございます", userHtml),
+      sendMail(email, "【さくせいくん】ご登録完了・ログイン情報", userHtml),
     ]);
     console.log("[notifyNewUser] Promise.all 完了");
   } catch (err) {
