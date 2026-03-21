@@ -3,9 +3,8 @@ export default function Footer() {
     <footer className="mt-8 text-center text-[10px] text-gray-400 space-y-1 pb-4">
       <p>運営：とみながFP事務所</p>
       <p>
-        お問い合わせ：
-        <a href="mailto:info@tominaga-fp.com" className="hover:underline">
-          info@tominaga-fp.com
+        <a href="https://forms.gle/k4tbWDfMoaK2nps7A" target="_blank" rel="noopener noreferrer" className="hover:underline">
+          お問い合わせ・ご要望
         </a>
       </p>
       <p className="space-x-2">

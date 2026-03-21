@@ -162,8 +162,9 @@ export async function notifyNewUser(data: {
       </p>
       <hr style="border:none;border-top:1px solid #ccc;margin:24px 0;" />
       <p style="margin-top:0;">
-        ご不明な点はこちらまでご連絡ください。<br />
-        <a href="mailto:info@tominaga-fp.com" style="color:#0f2346;">info@tominaga-fp.com</a>
+        お問い合わせ・ご要望はフォームよりお送りください。<br />
+        <a href="https://forms.gle/k4tbWDfMoaK2nps7A" style="color:#0f2346;">https://forms.gle/k4tbWDfMoaK2nps7A</a><br />
+        ※メールでのお問い合わせはお受けしておりません。
       </p>
       <p>とみながFP事務所　富永淳一</p>
     </div>
