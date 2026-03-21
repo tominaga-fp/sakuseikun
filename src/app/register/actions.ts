@@ -104,19 +104,40 @@ async function addSystemeContact(data: {
       body: JSON.stringify({
         email: data.email,
         fields: [
-          { slug: "first_name", value: data.firstName },
-          { slug: "last_name", value: data.lastName },
+          { slug: "first_name", value: `${data.lastName} ${data.firstName}` },
         ],
       }),
     });
-    if (!res.ok) {
+
+    let contactId: number;
+    if (res.status === 422) {
+      // メール重複の場合は既存コンタクトを検索
+      console.log("[addSystemeContact] 422 メール重複 - 既存コンタクトを取得");
+      const searchRes = await fetch(
+        `https://api.systeme.io/api/contacts?email=${encodeURIComponent(data.email)}`,
+        { headers: { "X-API-Key": apiKey } }
+      );
+      if (!searchRes.ok) {
+        console.error("[addSystemeContact] 既存コンタクト取得エラー:", searchRes.status);
+        return;
+      }
+      const searchData = await searchRes.json();
+      const existing = (searchData.items ?? [])[0];
+      if (!existing) {
+        console.error("[addSystemeContact] 既存コンタクトが見つかりません");
+        return;
+      }
+      contactId = existing.id;
+      console.log("[addSystemeContact] 既存コンタクト取得成功 id:", contactId);
+    } else if (!res.ok) {
       const errText = await res.text();
       console.error("[addSystemeContact] コンタクト作成エラー status:", res.status, "body:", errText);
       return;
+    } else {
+      const contact = await res.json();
+      contactId = contact.id;
+      console.log("[addSystemeContact] コンタクト作成成功 id:", contactId);
     }
-    const contact = await res.json();
-    const contactId: number = contact.id;
-    console.log("[addSystemeContact] コンタクト作成成功 id:", contactId);
 
     // 2. タグID取得または作成
     const tagId = await getOrCreateSystemeTagId(apiKey);
