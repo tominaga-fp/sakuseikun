@@ -905,7 +905,6 @@ export default function LpPage() {
                 border: "1px solid var(--border)",
                 borderRadius: "16px",
                 padding: "48px 44px",
-                maxWidth: "800px",
               }}
             >
               <div
