@@ -270,9 +270,7 @@ function RegisterForm() {
                     </a>
                     ・
                     <a
-                      href="https://tominaga-fp.com/sakuseikun/privacy-policy/"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href="/privacy-policy"
                       className="text-shu hover:underline"
                     >
                       プライバシーポリシー

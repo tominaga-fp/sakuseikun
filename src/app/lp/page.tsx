@@ -1118,18 +1118,10 @@ export default function LpPage() {
         {/* FOOTER */}
         <footer className="lp-footer">
           <div className="footer-links">
-            <a
-              href="https://tominaga-fp.com/sakuseikun/tokusyoho/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/tokushoho">
               特定商取引法に基づく表記
             </a>
-            <a
-              href="https://tominaga-fp.com/sakuseikun/privacy-policy/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/privacy-policy">
               プライバシーポリシー
             </a>
           </div>
