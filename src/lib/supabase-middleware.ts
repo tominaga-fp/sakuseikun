@@ -38,7 +38,8 @@ export async function updateSession(request: NextRequest) {
     pathname === "/lp" ||
     pathname === "/tokushoho" ||
     pathname === "/privacy-policy" ||
-    pathname === "/terms";
+    pathname === "/terms" ||
+    pathname === "/webauth.html";
   const isAuthCallback = pathname.startsWith("/api/auth");
   const isApiRoute = pathname.startsWith("/api/");
 
