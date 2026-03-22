@@ -26,7 +26,7 @@ async function sendMail(to: string, subject: string, htmlContent: string) {
 
   const body = JSON.stringify({
     personalizations: [{ to: [{ email: to }] }],
-    from: { email: FROM_EMAIL, name: "さくせいくん" },
+    from: { email: FROM_EMAIL, name: "補助金計画書さくせいくん（とみながFP事務所）" },
     subject,
     content: [{ type: "text/html", value: htmlContent }],
   });
