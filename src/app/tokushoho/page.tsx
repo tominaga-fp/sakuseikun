@@ -1,106 +1,74 @@
-"use client";
-
-import Link from "next/link";
-import Footer from "@/components/Footer";
-
 export default function TokushohoPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "#f5f2eb" }}>
-      <div className="w-full max-w-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold">
-            補助金計画書<span className="text-shu">さくせいくん</span>
-          </h1>
-          <p className="text-sm text-gray-500 mt-2">特定商取引法に基づく表記</p>
+    <>
+      <style>{`
+        :root { --navy:#0f2346; --gold:#b8860b; --ink:#1a1a1a; --ink-mid:#4a4a4a; --ink-light:#8a8a8a; --border:#e0e0e0; --bg:#f9f9f9; --white:#ffffff; }
+        .tk-body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--ink); line-height:1.8; }
+        .tk-header { background:var(--navy); padding:14px 32px; display:flex; align-items:center; }
+        .tk-logo { font-family:'Noto Serif JP',serif; font-weight:700; font-size:17px; color:var(--white); text-decoration:none; }
+        .tk-logo em { font-style:normal; color:#d4a017; }
+        .tk-hero { background:var(--navy); padding:48px 32px 56px; border-bottom:3px solid var(--gold); }
+        .tk-hero-inner { max-width:760px; margin:0 auto; }
+        .tk-hero h1 { font-family:'Noto Serif JP',serif; font-weight:700; font-size:clamp(22px,3vw,30px); color:var(--white); }
+        .tk-hero p { font-size:13px; color:rgba(255,255,255,0.5); margin-top:8px; }
+        .tk-content { max-width:760px; margin:0 auto; padding:56px 32px; }
+        .tk-table-wrap { background:var(--white); border:1px solid var(--border); margin-bottom:48px; }
+        .tk-table { width:100%; border-collapse:collapse; }
+        .tk-table th { background:#f5f5f5; font-weight:700; font-size:14px; color:var(--navy); padding:16px 20px; text-align:left; border-bottom:1px solid var(--border); border-right:1px solid var(--border); width:200px; vertical-align:top; white-space:nowrap; }
+        .tk-table td { font-size:14px; color:var(--ink-mid); padding:16px 20px; border-bottom:1px solid var(--border); line-height:1.85; vertical-align:top; }
+        .tk-table tr:last-child th, .tk-table tr:last-child td { border-bottom:none; }
+        .tk-note { font-size:12px; color:var(--ink-light); margin-top:6px; line-height:1.7; }
+        .tk-footer { background:var(--navy); padding:32px; text-align:center; }
+        .tk-footer-links { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+        .tk-footer-links a { font-size:12px; color:rgba(255,255,255,0.35); text-decoration:none; }
+        .tk-footer-copy { font-size:11px; color:rgba(255,255,255,0.2); }
+        @media(max-width:600px){
+          .tk-content{padding:36px 18px;} .tk-header{padding:12px 16px;} .tk-hero{padding:36px 18px 44px;}
+          .tk-table th{width:130px;white-space:normal;} .tk-table th,.tk-table td{padding:14px;font-size:13px;}
+        }
+      `}</style>
+      <div className="tk-body">
+        <header className="tk-header">
+          <a href="/" className="tk-logo">補助金計画書<em>さくせいくん</em></a>
+        </header>
+        <div className="tk-hero">
+          <div className="tk-hero-inner">
+            <h1>特定商取引法に基づく表記</h1>
+            <p>最終更新日：2026年3月</p>
+          </div>
         </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <h2 className="text-lg font-bold mb-6">特定商取引法に基づく表記</h2>
-
-          <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
-            <table className="w-full border-collapse">
+        <div className="tk-content">
+          <div className="tk-table-wrap">
+            <table className="tk-table">
               <tbody>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top w-40">販売事業者</td>
-                  <td className="py-3">とみながFP事務所</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">運営責任者</td>
-                  <td className="py-3">富永淳一</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">所在地</td>
-                  <td className="py-3">東京都多摩市<br />（詳細住所はご請求に応じて開示いたします）</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">メールアドレス</td>
-                  <td className="py-3">
-                    <a href="mailto:jtominaga@tominaga-fp.com" className="text-shu hover:underline">
-                      jtominaga@tominaga-fp.com
-                    </a>
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">サービス名</td>
-                  <td className="py-3">補助金計画書さくせいくん</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">販売URL</td>
-                  <td className="py-3">https://sakuseikun.jp/</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">販売価格</td>
-                  <td className="py-3">
-                    <ul className="space-y-1">
-                      <li>月額プラン：29,800円／月（月3件まで）</li>
-                      <li>年額プラン：148,000円／年（月3件まで）</li>
-                      <li>追加1件：9,800円／件</li>
-                    </ul>
-                    <p className="mt-1 text-gray-500">（税込）</p>
-                  </td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">支払方法</td>
-                  <td className="py-3">クレジットカード決済（VISA・Mastercard・American Express・JCB）</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">支払時期</td>
-                  <td className="py-3">お申し込み時に即時決済。月額・年額プランは期間満了後に自動更新されます。</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">サービス提供時期</td>
-                  <td className="py-3">お申し込み・決済完了後、即時ご利用いただけます。</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">返品・キャンセル</td>
-                  <td className="py-3">デジタルコンテンツの性質上、いかなる場合においても返金・キャンセルには応じられません。解約手続き後は当月末日（月額）または満期日（年額）までご利用いただけます。</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">解約方法</td>
-                  <td className="py-3">
-                    メール（
-                    <a href="mailto:jtominaga@tominaga-fp.com" className="text-shu hover:underline">
-                      jtominaga@tominaga-fp.com
-                    </a>
-                    ）にてお申し込みください。
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 pr-4 font-bold text-gray-600 align-top">動作環境</td>
-                  <td className="py-3">インターネット接続環境および最新版のWebブラウザ（Chrome・Safari・Firefox・Edge推奨）</td>
-                </tr>
+                <tr><th>販売業者</th><td>とみながFP事務所</td></tr>
+                <tr><th>運営責任者</th><td>富永淳一</td></tr>
+                <tr><th>所在地</th><td>〒104-0061 東京都中央区銀座1丁目12番4号 N&E BLD.6F</td></tr>
+                <tr><th>電話番号</th><td>お客様からのご請求がありましたら、遅滞なく電磁的記録（メール等）にて開示いたします。</td></tr>
+                <tr><th>お問い合わせ</th><td>メール：jtominaga@tominaga-fp.com<br /><p className="tk-note">※電話でのサポート・受付は行っておりません。記録の残るメールにてお問い合わせいただきますようお願いいたします。</p></td></tr>
+                <tr><th>サイトURL</th><td>https://sakuseikun.jp</td></tr>
+                <tr><th>販売価格</th><td>以下のプランからお選びいただけます（税込）<br /><br />・お試し（1件無料）※初回登録時<br />・追加1件：9,800円/件<br />・月額プラン：29,800円/月（月3件まで）<br />・年額プラン：178,800円/年（月3件まで）<br /><br /><p className="tk-note">月3件を超える場合は1件あたり9,800円の追加料金が発生します。</p></td></tr>
+                <tr><th>商品代金以外に<br />必要な費用</th><td>・本サービスのご利用に必要なインターネット接続費用・通信費用<br />・クレジットカード決済の場合、カード会社指定の手数料</td></tr>
+                <tr><th>引き渡し時期</th><td>登録完了後、即時ご利用いただけます。クレジットカード決済完了後、ダッシュボードへのアクセスが有効になります。</td></tr>
+                <tr><th>お支払い方法</th><td>クレジットカード決済（VISA・Mastercard・JCB・American Express）</td></tr>
+                <tr><th>お支払いの時期</th><td>・月額プラン：お申し込み時に即時決済。以降、毎月同日に自動更新。<br />・年額プラン：お申し込み時に即時決済。以降、1年ごとに自動更新。<br />・追加1件：購入時に即時決済。</td></tr>
+                <tr><th>動作環境</th><td>インターネットに接続されたPC・スマートフォン・タブレットとモダンブラウザ（Google Chrome・Safari・Firefox・Microsoft Edge等）があればご利用いただけます。特別なソフトウェアのインストールは不要です。</td></tr>
+                <tr><th>返品・キャンセル<br />について</th><td>本サービスはデジタルサービスの性質上、お申し込み後のキャンセル・返金には応じられません。まずは無料体験にてご確認のうえ、お申し込みください。<br /><br />・月額・年額プランの解約はご利用期間末日までに手続きください。解約期間末日をもってサービスが終了します。<br />・解約後のデータは完全に削除されます。</td></tr>
+                <tr><th>クーリング・オフ</th><td>本サービスは、お客様の自発的なインターネット通信販売であるため、特定商取引法に規定されるクーリング・オフ制度の適用対象外となります。</td></tr>
+                <tr><th>個人情報の<br />取り扱い</th><td>お客様からいただいた個人情報は、本サービスの提供・運営のみに使用します。第三者への提供・販売は一切行いません。詳細は<a href="/privacy-policy" style={{color:'var(--navy)'}}>プライバシーポリシー</a>をご確認ください。</td></tr>
               </tbody>
             </table>
           </div>
         </div>
-
-        <div className="mt-6 text-center">
-          <Link href="/register" className="text-sm text-shu hover:underline">
-            新規登録に戻る
-          </Link>
-        </div>
-        <Footer />
+        <footer className="tk-footer">
+          <div className="tk-footer-links">
+            <a href="/">ホームページ</a>
+            <a href="/tokushoho">特定商取引法に基づく表記</a>
+            <a href="/privacy-policy">プライバシーポリシー</a>
+          </div>
+          <p className="tk-footer-copy">© 2026 とみながFP事務所・富永淳一 All Rights Reserved.</p>
+        </footer>
       </div>
-    </div>
+    </>
   );
 }
