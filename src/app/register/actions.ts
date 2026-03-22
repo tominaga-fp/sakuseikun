@@ -116,6 +116,8 @@ async function addSystemeContact(data: {
         fields,
       }),
     });
+    const resText = await res.text();
+    console.log("[addSystemeContact] コンタクト作成 status:", res.status, "body:", resText);
 
     let contactId: number;
     if (res.status === 422) {
@@ -125,11 +127,13 @@ async function addSystemeContact(data: {
         `https://api.systeme.io/api/contacts?email=${encodeURIComponent(data.email)}`,
         { headers: { "X-API-Key": apiKey } }
       );
+      const searchText = await searchRes.text();
+      console.log("[addSystemeContact] 検索 status:", searchRes.status, "body:", searchText);
       if (!searchRes.ok) {
-        console.error("[addSystemeContact] 既存コンタクト取得エラー:", searchRes.status);
+        console.error("[addSystemeContact] 既存コンタクト取得エラー");
         return;
       }
-      const searchData = await searchRes.json();
+      const searchData = JSON.parse(searchText);
       const existing = (searchData.items ?? [])[0];
       if (!existing) {
         console.error("[addSystemeContact] 既存コンタクトが見つかりません");
@@ -138,11 +142,10 @@ async function addSystemeContact(data: {
       contactId = existing.id;
       console.log("[addSystemeContact] 既存コンタクト取得成功 id:", contactId);
     } else if (!res.ok) {
-      const errText = await res.text();
-      console.error("[addSystemeContact] コンタクト作成エラー status:", res.status, "body:", errText);
+      console.error("[addSystemeContact] コンタクト作成失敗");
       return;
     } else {
-      const contact = await res.json();
+      const contact = JSON.parse(resText);
       contactId = contact.id;
       console.log("[addSystemeContact] コンタクト作成成功 id:", contactId);
     }
@@ -163,12 +166,8 @@ async function addSystemeContact(data: {
       },
       body: JSON.stringify({ tagId }),
     });
-    if (!tagRes.ok) {
-      const errText = await tagRes.text();
-      console.error("[addSystemeContact] タグ付与エラー status:", tagRes.status, "body:", errText);
-    } else {
-      console.log("[addSystemeContact] タグ付与成功 tagId:", tagId);
-    }
+    const tagResText = await tagRes.text();
+    console.log("[addSystemeContact] タグ付与 status:", tagRes.status, "body:", tagResText);
   } catch (err) {
     console.error("[addSystemeContact] fetchエラー:", err);
   }
