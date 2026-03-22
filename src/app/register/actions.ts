@@ -104,7 +104,8 @@ async function addSystemeContact(data: {
       body: JSON.stringify({
         email: data.email,
         fields: [
-          { slug: "first_name", value: `${data.lastName} ${data.firstName}` },
+          { slug: "last_name", value: data.lastName },
+          { slug: "first_name", value: data.firstName },
         ],
       }),
     });
