@@ -87,6 +87,7 @@ async function addSystemeContact(data: {
   email: string;
   firstName: string;
   lastName: string;
+  companyName: string;
 }) {
   const apiKey = process.env.SYSTEME_IO_API_KEY;
   if (!apiKey) {
@@ -94,6 +95,15 @@ async function addSystemeContact(data: {
     return;
   }
   try {
+    const fields: { slug: string; value: string }[] = [
+      { slug: "last_name", value: data.lastName },
+      { slug: "first_name", value: data.firstName },
+    ];
+    if (data.companyName) {
+      fields.push({ slug: "company", value: data.companyName });
+    }
+    console.log("[addSystemeContact] 送信データ:", JSON.stringify({ email: data.email, fields }));
+
     // 1. コンタクト作成
     const res = await fetch("https://api.systeme.io/api/contacts", {
       method: "POST",
@@ -103,8 +113,7 @@ async function addSystemeContact(data: {
       },
       body: JSON.stringify({
         email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        fields,
       }),
     });
 
@@ -219,6 +228,7 @@ export async function registerUser(data: {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
+        companyName: data.companyName,
       }),
     ]);
 
