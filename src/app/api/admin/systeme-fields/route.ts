@@ -7,7 +7,7 @@ export async function GET() {
   }
 
   // コンタクト1件取得してfieldsの構造を確認
-  const contactsRes = await fetch("https://api.systeme.io/api/contacts?limit=1", {
+  const contactsRes = await fetch("https://api.systeme.io/api/contacts?limit=10", {
     headers: { "X-API-Key": apiKey },
   });
   const contactsData = await contactsRes.json();
