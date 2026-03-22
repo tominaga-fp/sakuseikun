@@ -96,9 +96,12 @@ async function addSystemeContact(data: {
   }
   try {
     const fields: { slug: string; value: string }[] = [
-      { slug: "last_name", value: data.lastName },
+      { slug: "surname", value: data.lastName },
       { slug: "first_name", value: data.firstName },
     ];
+    if (data.companyName) {
+      fields.push({ slug: "company_name", value: data.companyName });
+    }
     console.log("[addSystemeContact] 送信データ:", JSON.stringify({ email: data.email, fields }));
 
     // 1. コンタクト作成
