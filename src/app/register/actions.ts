@@ -99,9 +99,6 @@ async function addSystemeContact(data: {
       { slug: "last_name", value: data.lastName },
       { slug: "first_name", value: data.firstName },
     ];
-    if (data.companyName) {
-      fields.push({ slug: "company", value: data.companyName });
-    }
     console.log("[addSystemeContact] 送信データ:", JSON.stringify({ email: data.email, fields }));
 
     // 1. コンタクト作成
@@ -121,8 +118,21 @@ async function addSystemeContact(data: {
 
     let contactId: number;
     if (res.status === 422) {
-      // メール重複の場合は既存コンタクトを検索
-      console.log("[addSystemeContact] 422 メール重複 - 既存コンタクトを取得");
+      // bodyを解析してメール重複か否かを判別
+      let resJson: Record<string, unknown> = {};
+      try { resJson = JSON.parse(resText); } catch { /* ignore */ }
+      const isDuplicate =
+        JSON.stringify(resJson).toLowerCase().includes("email") &&
+        (JSON.stringify(resJson).toLowerCase().includes("already") ||
+          JSON.stringify(resJson).toLowerCase().includes("exist") ||
+          JSON.stringify(resJson).toLowerCase().includes("unique"));
+
+      if (!isDuplicate) {
+        console.error("[addSystemeContact] 422バリデーションエラー（メール重複以外）:", resText);
+        return;
+      }
+
+      console.log("[addSystemeContact] 422 メール重複 - 既存コンタクトを検索");
       const searchRes = await fetch(
         `https://api.systeme.io/api/contacts?email=${encodeURIComponent(data.email)}`,
         { headers: { "X-API-Key": apiKey } }
@@ -136,13 +146,13 @@ async function addSystemeContact(data: {
       const searchData = JSON.parse(searchText);
       const existing = (searchData.items ?? [])[0];
       if (!existing) {
-        console.error("[addSystemeContact] 既存コンタクトが見つかりません");
+        console.error("[addSystemeContact] 既存コンタクトが見つかりません items:", JSON.stringify(searchData.items));
         return;
       }
       contactId = existing.id;
       console.log("[addSystemeContact] 既存コンタクト取得成功 id:", contactId);
     } else if (!res.ok) {
-      console.error("[addSystemeContact] コンタクト作成失敗");
+      console.error("[addSystemeContact] コンタクト作成失敗 status:", res.status);
       return;
     } else {
       const contact = JSON.parse(resText);
