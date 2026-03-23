@@ -85,8 +85,8 @@ function RegisterForm() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "#f5f2eb" }}>
       <div className="w-full max-w-md">
-        <div style={{ background: "linear-gradient(90deg, #f59e0b, #f97316)", borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", textAlign: "center" }}>
-          <p style={{ color: "#fff", fontWeight: 700, fontSize: "14px", margin: 0 }}>🎉 期間限定キャンペーン中｜4月30日まで無料・件数無制限で使い放題</p>
+        <div style={{ background: "linear-gradient(90deg, #f59e0b, #f97316)", borderRadius: "10px", padding: "16px 20px", marginBottom: "16px", textAlign: "center" }}>
+          <p style={{ color: "#fff", fontWeight: 700, fontSize: "18px", margin: 0 }}>🎉 4月30日まで無料・件数無制限で使い放題！</p>
         </div>
 
         <div className="text-center mb-8">
