@@ -18,7 +18,6 @@ function RegisterForm() {
   const [userType, setUserType] = useState<"business" | "consultant">("consultant");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [referralCode, setReferralCode] = useState("");
@@ -32,10 +31,6 @@ function RegisterForm() {
     setError("");
     setMessage("");
 
-    if (password !== passwordConfirm) {
-      setError("パスワードが一致しません");
-      return;
-    }
     if (password.length < 8) {
       setError("パスワードは8文字以上で入力してください");
       return;
@@ -79,7 +74,6 @@ function RegisterForm() {
     firstName.trim() &&
     email.trim() &&
     password.length >= 8 &&
-    passwordConfirm === password &&
     agreed;
 
   return (
@@ -219,24 +213,6 @@ function RegisterForm() {
                     {showPassword ? "非表示" : "表示"}
                   </button>
                 </div>
-              </div>
-
-              {/* パスワード確認 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  パスワード（確認） <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shu focus:border-transparent outline-none bg-white text-sm"
-                  required
-                  minLength={8}
-                />
-                {passwordConfirm && password !== passwordConfirm && (
-                  <p className="text-red-500 text-xs mt-1">パスワードが一致しません</p>
-                )}
               </div>
 
               {/* 紹介コード */}
