@@ -93,7 +93,6 @@ function RegisterForm() {
           <h1 className="text-2xl font-bold">
             補助金計画書<span className="text-shu">さくせいくん</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-2">今すぐ無料登録（件数無制限・クレカ不要）</p>
           <p className="text-sm text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
         </div>
 
