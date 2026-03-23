@@ -85,12 +85,16 @@ function RegisterForm() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "#f5f2eb" }}>
       <div className="w-full max-w-md">
+        <div style={{ background: "linear-gradient(90deg, #f59e0b, #f97316)", borderRadius: "10px", padding: "10px 16px", marginBottom: "16px", textAlign: "center" }}>
+          <p style={{ color: "#fff", fontWeight: 700, fontSize: "14px", margin: 0 }}>🎉 期間限定キャンペーン中｜4月30日まで無料・件数無制限で使い放題</p>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">
             補助金計画書<span className="text-shu">さくせいくん</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-2">無料アカウント作成</p>
-          <p className="text-xs text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
+          <p className="text-sm text-gray-500 mt-2">今すぐ無料登録（件数無制限・クレカ不要）</p>
+          <p className="text-sm text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
@@ -293,6 +297,7 @@ function RegisterForm() {
               >
                 {loading ? "登録中..." : "無料アカウントを作成"}
               </button>
+              <p className="text-center text-xs text-gray-400 mt-2">登録30秒・クレジットカード不要・すぐに使えます</p>
             </form>
           )}
         </div>
