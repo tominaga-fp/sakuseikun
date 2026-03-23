@@ -909,36 +909,14 @@ export default function LpPage() {
             >
               <div
                 style={{
-                  fontSize: "20px",
-                  fontWeight: 700,
-                  color: "var(--navy)",
-                  lineHeight: 1.6,
-                  marginBottom: "24px",
-                  borderLeft: "4px solid var(--navy)",
-                  paddingLeft: "20px",
-                }}
-              >
-                中小企業FPとして資金繰り・経営計画の支援に携わってきた知見と、補助金の徹底研究をベースに、AIと対話しながら作り上げたWebツールです。
-              </div>
-              <div
-                style={{
-                  fontSize: "17px",
-                  color: "var(--ink-mid)",
-                  lineHeight: 2.1,
-                  marginBottom: "16px",
-                }}
-              >
-                私はFP（ファイナンシャルプランナー）として、中小企業の資金繰りや事業の収支計画・ビジネスモデルの構築といった「財務・経営改善」に伴走してきました。補助金の審査員が事業計画書で最も厳しく見るのは、整った日本語ではありません。「この事業は投資する価値があるか」「売上目標の数字に根拠はあるか」という、極めてシビアなビジネスと数字のロジックです。
-              </div>
-              <div
-                style={{
                   fontSize: "17px",
                   color: "var(--ink-mid)",
                   lineHeight: 2.1,
                   marginBottom: "32px",
                 }}
               >
-                そのロジックを体系化し、AIに組み込んだのが補助金計画書さくせいくんです。エンジニアでもない人間が、AIとの対話だけで作り上げたシステム——それが逆に、現場感覚を損なわない設計につながっていると思っています。
+                <p style={{margin: '0 0 1em'}}>中小企業のFPとして財務・経営改善に携わり、<br />補助金を6年研究してきた知見をAIに組み込んだWebツールです。</p>
+                <p style={{margin: 0}}>エンジニアでもない私が、現場感覚を損なわずに作り上げました。</p>
               </div>
               <div
                 style={{
