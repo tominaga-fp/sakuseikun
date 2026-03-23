@@ -268,7 +268,7 @@ export default function LpPage() {
             {/* Right: CTA */}
             <div id="form">
               <div className="hero-form-card">
-                <p className="form-heading">無料モニター登録</p>
+                <p className="form-heading">今すぐ無料で試す →</p>
                 <p className="form-sub">
                   登録後すぐにご利用いただけます。クレジットカード不要。
                 </p>
@@ -295,7 +295,7 @@ export default function LpPage() {
                     textDecoration: "none",
                   }}
                 >
-                  無料でモニター登録する →
+                  今すぐ無料で試す →
                 </a>
                 <p className="form-note">
                   登録は無料です。いつでも解除できます。
@@ -1107,7 +1107,7 @@ export default function LpPage() {
             クレジットカード不要。この驚く品質を確かめてください。
           </p>
           <a href={CTA_HREF} className="btn-cta fi">
-            無料でモニター登録する →
+            今すぐ無料で試す →
           </a>
           <p className="cta-note">
             補助金業務に携わる行政書士の方へ ／ 持続化補助金 第19回対応
