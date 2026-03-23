@@ -398,7 +398,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [swotOpen, setSwotOpen] = useState(true);
 
   const isAdmin = profile?.role === "admin";
-  const isMonitor = profile?.is_monitor ?? false;
+  const isCampaignActive = new Date() <= new Date('2026-04-30T23:59:59+09:00');
+  const isMonitor = isCampaignActive ? true : !!profile?.is_monitor;
   const isUnlimited = isAdmin || isMonitor;
   const isFree = (profile?.plan_type ?? "free") === "free" && !isUnlimited;
   const isCampaignExpired = isFree && new Date() >= new Date("2026-05-01T00:00:00+09:00");
