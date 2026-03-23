@@ -1018,24 +1018,23 @@ export default function LpPage() {
         {/* PRICING */}
         <section style={{padding: '3rem 1rem 2rem', maxWidth: '860px', margin: '0 auto'}}>
           <h2 style={{fontSize: '28px', fontWeight: 500, margin: '0 0 2rem'}}>料金プラン</h2>
-          <div style={{background: '#1a2744', borderRadius: '12px', padding: '2rem 2.5rem', marginBottom: '2rem'}}>
-            <span style={{display: 'inline-block', background: '#c8a04a', color: '#fff', fontSize: '18px', fontWeight: 500, padding: '8px 20px', borderRadius: '4px', marginBottom: '1rem', letterSpacing: '0.05em'}}>無料モニター募集中</span>
-            <p style={{fontSize: '24px', fontWeight: 500, color: '#fff', margin: '0 0 0.75rem'}}>4月30日まで計画書の作成が無制限で体験いただけます</p>
-            <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7}}>生成されたテキストはそのままご利用可能。まずは品質をお確かめください。</p>
+          <div style={{background: '#1a2744', borderRadius: '12px', padding: '2rem 2.5rem', marginBottom: '2rem', textAlign: 'center'}}>
+            <span style={{display: 'inline-block', background: '#c8a04a', color: '#fff', fontSize: '18px', fontWeight: 500, padding: '8px 20px', borderRadius: '4px', marginBottom: '1.25rem', letterSpacing: '0.05em'}}>無料モニター募集中</span>
+            <p style={{fontSize: '32px', fontWeight: 700, color: '#fff', margin: '0 0 0.5rem', lineHeight: 1.3}}>モニター期間中は完全無料</p>
+            <p style={{fontSize: '20px', fontWeight: 700, color: '#f59e0b', margin: '0 0 0.75rem'}}>クレジットカード不要</p>
+            <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7}}>4月30日まで計画書の作成が無制限で体験いただけます。生成されたテキストはそのままご利用可能。</p>
           </div>
-          <p style={{fontSize: '11px', color: '#888', margin: '0 0 0.75rem'}}>通常料金（5月以降）</p>
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem'}}>
-            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '1rem 1.25rem'}}>
-              <p style={{fontSize: '11px', color: '#888', margin: '0 0 0.25rem'}}>月額プラン</p>
-              <p style={{fontSize: '26px', fontWeight: 500, margin: 0, lineHeight: 1}}>29,800<span style={{fontSize: '12px', fontWeight: 400, color: '#888'}}>円/月</span></p>
-              <p style={{fontSize: '11px', color: '#888', margin: '0.25rem 0 0.5rem'}}>月3件まで利用可能</p>
-              <p style={{fontSize: '11px', color: '#888', borderTop: '0.5px solid #ddd', paddingTop: '0.5rem', margin: 0}}>毎月安定して受任がある方向け。</p>
+          <p style={{fontSize: '11px', color: '#bbb', margin: '0 0 0.5rem'}}>通常料金（5月以降・ご参考）</p>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem', opacity: 0.6}}>
+            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '0.75rem 1rem'}}>
+              <p style={{fontSize: '10px', color: '#888', margin: '0 0 0.25rem'}}>月額プラン</p>
+              <p style={{fontSize: '18px', fontWeight: 500, margin: 0, lineHeight: 1}}>29,800<span style={{fontSize: '11px', fontWeight: 400, color: '#888'}}>円/月</span></p>
+              <p style={{fontSize: '10px', color: '#888', margin: '0.2rem 0 0'}}>月3件まで</p>
             </div>
-            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '1rem 1.25rem'}}>
-              <p style={{fontSize: '11px', color: '#888', margin: '0 0 0.25rem'}}>年額プラン</p>
-              <p style={{fontSize: '26px', fontWeight: 500, margin: 0, lineHeight: 1}}>178,800<span style={{fontSize: '12px', fontWeight: 400, color: '#888'}}>円/年</span></p>
-              <p style={{fontSize: '11px', color: '#888', margin: '0.25rem 0 0.5rem'}}>月3件まで ／ 月換算14,900円（月額比50%お得）</p>
-              <p style={{fontSize: '11px', color: '#888', borderTop: '0.5px solid #ddd', paddingTop: '0.5rem', margin: 0}}>年間を通じて活用したい方向け。年額なら半額。</p>
+            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '0.75rem 1rem'}}>
+              <p style={{fontSize: '10px', color: '#888', margin: '0 0 0.25rem'}}>年額プラン</p>
+              <p style={{fontSize: '18px', fontWeight: 500, margin: 0, lineHeight: 1}}>178,800<span style={{fontSize: '11px', fontWeight: 400, color: '#888'}}>円/年</span></p>
+              <p style={{fontSize: '10px', color: '#888', margin: '0.2rem 0 0'}}>月3件まで／月換算14,900円</p>
             </div>
           </div>
           <div style={{fontSize: '11px', color: '#888', lineHeight: 2.2}}>
