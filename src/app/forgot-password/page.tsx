@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
       });
       if (error) throw error;
       setMessage("パスワードリセット用のメールを送信しました。メールを確認してください。");
