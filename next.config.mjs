@@ -9,17 +9,17 @@ const nextConfig = {
       },
       {
         source: '/go/fb',
-        destination: 'https://sakuseikun.jp/lp?utm_source=facebook&utm_medium=social&utm_campaign=monitor',
+        destination: 'https://sakuseikun.jp/?utm_source=facebook&utm_medium=social&utm_campaign=monitor',
         permanent: false,
       },
       {
         source: '/go/x',
-        destination: 'https://sakuseikun.jp/lp?utm_source=twitter&utm_medium=social&utm_campaign=monitor',
+        destination: 'https://sakuseikun.jp/?utm_source=twitter&utm_medium=social&utm_campaign=monitor',
         permanent: false,
       },
       {
         source: '/go/th',
-        destination: 'https://sakuseikun.jp/lp?utm_source=threads&utm_medium=social&utm_campaign=monitor',
+        destination: 'https://sakuseikun.jp/?utm_source=threads&utm_medium=social&utm_campaign=monitor',
         permanent: false,
       },
     ];
