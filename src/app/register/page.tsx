@@ -23,6 +23,7 @@ function RegisterForm() {
   const [agreed, setAgreed] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
