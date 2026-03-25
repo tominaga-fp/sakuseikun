@@ -12,6 +12,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isMonitor = searchParams.get("ref") === "monitor";
+  const isComplete = searchParams.get("status") === "complete";
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -22,7 +23,6 @@ function RegisterForm() {
   const [agreed, setAgreed] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
@@ -54,7 +54,7 @@ function RegisterForm() {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
 
-      setMessage("登録が完了しました。");
+      router.push("/register?status=complete");
     } catch (err) {
       setError(err instanceof Error ? err.message : "登録に失敗しました");
     } finally {
@@ -63,11 +63,11 @@ function RegisterForm() {
   };
 
   useEffect(() => {
-    if (message) {
+    if (isComplete) {
       const timer = setTimeout(() => router.push("/dashboard"), 1500);
       return () => clearTimeout(timer);
     }
-  }, [message, router]);
+  }, [isComplete, router]);
 
   const isFormValid =
     lastName.trim() &&
@@ -91,10 +91,13 @@ function RegisterForm() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          {message ? (
-            <div className="text-center py-4">
+          {isComplete ? (
+            <div className="text-center py-4 space-y-3">
               <div className="text-green-600 text-sm bg-green-50 p-4 rounded-lg">
-                {message}
+                ご登録ありがとうございます。ダッシュボードに移動します...
+              </div>
+              <div className="text-gray-600 text-sm bg-gray-50 p-4 rounded-lg text-left">
+                📌 次回からはダッシュボード（<span className="font-medium">sakuseikun.jp/dashboard</span>）をブックマークしてご利用ください。
               </div>
             </div>
           ) : (

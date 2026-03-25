@@ -217,6 +217,7 @@ export default function LpPage() {
             <a href="#how">使い方</a>
             <a href="#bonus">特典</a>
             <a href="#faq">FAQ</a>
+            <a href="/login">ログイン</a>
             <a href={CTA_HREF} className="btn-sm" style={{ color: '#ffffff' }}>
               無料登録
             </a>
