@@ -519,7 +519,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs }),
+      body: JSON.stringify({ messages: msgs.slice(-10) }),
     });
 
     if (!res.ok) {
