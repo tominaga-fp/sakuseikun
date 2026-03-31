@@ -8,6 +8,11 @@ const nextConfig = {
         permanent: false,
       },
       {
+        source: '/go/dm19_2',
+        destination: '/lp?utm_source=email&utm_medium=dm&utm_campaign=dm19_2',
+        permanent: false,
+      },
+      {
         source: '/go/fb',
         destination: 'https://sakuseikun.jp/?utm_source=facebook&utm_medium=social&utm_campaign=monitor',
         permanent: false,
