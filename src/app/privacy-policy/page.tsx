@@ -69,7 +69,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Supabase（Supabase Inc.）</strong>：ユーザー認証・データベース管理のため。入力されたヒアリング情報・会話履歴を保存します。</li>
               <li><strong>Anthropic Claude API（Anthropic PBC）</strong>：計画書の下書き生成のため。入力されたヒアリング情報をAI処理に使用します。</li>
               <li><strong>SendGrid（Twilio Inc.）</strong>：登録完了メール等のメール送信のため。</li>
-              <li><strong>ファーストペイメント株式会社</strong>：クレジットカード決済処理のため。</li>
+              <li><strong>決済代行会社</strong>：クレジットカード決済処理のため。</li>
             </ol>
             <p>各外部サービスのプライバシーポリシーは各社のウェブサイトからご確認ください。入力いただいた情報は、本サービスの計画書生成の目的のみに使用し、第三者への販売・提供は一切行いません。</p>
           </div>
