@@ -687,6 +687,16 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   // ─── Send message (with first-message count confirm) ───
   const doSendMessage = async (text: string) => {
+    // チャット上限チェック
+    const userMessageCount = messages.filter(m => m.role === 'user').length;
+    if (userMessageCount >= 30) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '会話が長くなっています。計画書のドラフトを作成するか、新しい会話を始めてください。'
+      }]);
+      return;
+    }
+
     const userMessage: ChatMessage = { role: "user", content: text };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
