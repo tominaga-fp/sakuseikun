@@ -67,10 +67,18 @@ export async function POST(request: Request) {
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
-    // ログ記録のみ（カウント消費は /api/consume-count で実施）
+    // ログ記録（カウント消費は /api/consume-count で実施）
+    const userMessages = messages.filter((m) => m.role === "user");
+    const lastUserMessage = userMessages[userMessages.length - 1]?.content ?? "";
+    const action =
+      userMessages.length === 1
+        ? "session_start"
+        : lastUserMessage.includes("ドラフトを生成")
+          ? "generate_plan"
+          : "chat_message";
     const backgroundTasks = supabase.from("usage_logs").insert({
       user_id: user.id,
-      action: "chat_message",
+      action,
       count_used: 0,
     });
 
