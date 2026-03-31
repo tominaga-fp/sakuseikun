@@ -2,10 +2,20 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "補助金計画書さくせいくん｜持続化補助金の計画書をAIで作成",
   description: "行政書士・中小企業向け。持続化補助金の事業計画書をAIが自動作成。第19回対応・4月30日まで無料で使い放題。",
   alternates: { canonical: "https://sakuseikun.jp" },
+  openGraph: {
+    title: "補助金計画書さくせいくん｜持続化補助金の計画書をAIで作成",
+    description: "行政書士・中小企業向け。持続化補助金の事業計画書をAIが自動作成。第19回対応・4月30日まで無料で使い放題。",
+    images: [{ url: "/ogp.png", width: 1200, height: 630 }],
+    url: "https://sakuseikun.jp",
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/ogp.png"],
+  },
 };
 
 export default function RootLayout({
