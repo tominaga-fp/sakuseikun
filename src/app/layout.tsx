@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     '行政書士DX',
     'AI計画書',
   ],
+  authors: [{ name: '富永淳一', url: 'https://sakuseikun.jp' }],
   alternates: { canonical: "https://sakuseikun.jp" },
   openGraph: {
     title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
