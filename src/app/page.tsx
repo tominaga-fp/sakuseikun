@@ -826,37 +826,12 @@ export default function LpPage() {
         {/* HOW */}
         <section className="how-sec" id="how">
           <div className="sec-inner">
-            <h2 className="sec-title fi">使い方は4ステップ</h2>
-            <div className="how-steps">
-              <div className="how-step fi">
-                <div className="step-num">1</div>
-                <h3>無料登録</h3>
-                <p>
-                  氏名・法人名・メールアドレスで登録完了。モニター期間中は計画書作成が無制限で使えます。
-                </p>
-              </div>
-              <div className="how-step fi">
-                <div className="step-num">2</div>
-                <h3>情報を入力</h3>
-                <p>
-                  面談音声の文字起こし・メモ・HPのURLを入力。AIが不足情報を質問してくれます。
-                </p>
-              </div>
-              <div className="how-step fi">
-                <div className="step-num">3</div>
-                <h3>下書きが生成される</h3>
-                <p>
-                  様式2準拠の経営計画・補助事業計画のたたき台テキストを即座に出力します。
-                </p>
-              </div>
-              <div className="how-step fi">
-                <div className="step-num">4</div>
-                <h3>確認・加筆して完成</h3>
-                <p>
-                  生成された下書きをもとに、専門家として内容を確認・加筆・仕上げて完成させます。
-                </p>
-              </div>
-            </div>
+            <h2 className="sec-title fi">使い方はとっても簡単</h2>
+            <img
+              src="/steps.png"
+              alt="使い方はとっても簡単"
+              style={{ width: "100%", height: "auto", borderRadius: "16px" }}
+            />
           </div>
         </section>
 
