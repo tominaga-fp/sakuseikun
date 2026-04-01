@@ -3,12 +3,12 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "補助金計画書さくせいくん｜持続化補助金の計画書をAIで作成",
-  description: "行政書士・中小企業向け。持続化補助金の事業計画書をAIが自動作成。第19回対応・4月30日まで無料で使い放題。",
+  title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
+  description: "行政書士のAI活用を支援する持続化補助金特化ツール。ヒアリング情報を入力するだけで様式2準拠の計画書下書きを即座に生成。第19回対応・モニター期間中は無制限無料。",
   alternates: { canonical: "https://sakuseikun.jp" },
   openGraph: {
-    title: "補助金計画書さくせいくん｜持続化補助金の計画書をAIで作成",
-    description: "行政書士・中小企業向け。持続化補助金の事業計画書をAIが自動作成。第19回対応・4月30日まで無料で使い放題。",
+    title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
+    description: "行政書士のAI活用を支援する持続化補助金特化ツール。ヒアリング情報を入力するだけで様式2準拠の計画書下書きを即座に生成。第19回対応・モニター期間中は無制限無料。",
     images: [{ url: "/ogp.png", width: 1200, height: 630 }],
     url: "https://sakuseikun.jp",
   },
