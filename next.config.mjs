@@ -27,6 +27,11 @@ const nextConfig = {
         destination: 'https://sakuseikun.jp/?utm_source=threads&utm_medium=social&utm_campaign=monitor',
         permanent: false,
       },
+      {
+        source: '/go/li',
+        destination: 'https://sakuseikun.jp/?utm_source=linkedin&utm_medium=social&utm_campaign=monitor',
+        permanent: false,
+      },
     ];
   },
 };
