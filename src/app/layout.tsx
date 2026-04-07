@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sakuseikun.jp"),
   title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
   description: "ヒアリング情報を入力するだけで持続化補助金の様式2準拠の計画書下書きを即座に生成。行政書士事務所のDX・業務効率化を支援するAI特化ツール「さくせいくん」。第19回公募対応済み・モニター期間中は無制限無料でご利用いただけます。",
   keywords: [
