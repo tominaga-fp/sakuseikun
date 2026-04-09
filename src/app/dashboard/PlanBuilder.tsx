@@ -226,12 +226,12 @@ function stripScoringBlocks(text: string): string {
 function parseSections(text: string): Record<string, string> {
   const result: Record<string, string> = {};
 
-  // ドラフト部分（【経営計画】以降）のみをパース対象とする
-  const keieiStart = text.indexOf("【経営計画】");
-  if (keieiStart === -1) return result;
-  const draftText = text.slice(keieiStart);
+  // ドラフト部分（【経営計画】or【経営計画書】以降）のみをパース対象とする
+  const keieiMatch = text.match(/【経営計画(?:書)?】/);
+  if (!keieiMatch) return result;
+  const draftText = text.slice(keieiMatch.index!);
 
-  const keieiPart = draftText.split(/【補助事業計画】/)[0] || draftText;
+  const keieiPart = draftText.split(/【補助事業計画(?:書)?】/)[0] || draftText;
   // Match both "3-1." (hyphenated) and "3." (single digit) section headings
   const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d(?:-\d)?)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d(?:-\d)?\.)|$)/g;
   let match;
@@ -243,9 +243,9 @@ function parseSections(text: string): Record<string, string> {
     }
   }
 
-  const hojoStart = draftText.indexOf("【補助事業計画】");
-  if (hojoStart === -1) return result;
-  const hojoPart = draftText.slice(hojoStart);
+  const hojoMatch = draftText.match(/【補助事業計画(?:書)?】/);
+  if (!hojoMatch) return result;
+  const hojoPart = draftText.slice(hojoMatch.index!);
 
   const nameMatch = hojoPart.match(/\*{0,2}1\.\s*補助事業で行う事業名\*{0,2}\s*\n([\s\S]*?)(?=\n\*{0,2}\d)/);
   if (nameMatch) result["hojo-name"] = nameMatch[1].trim();
