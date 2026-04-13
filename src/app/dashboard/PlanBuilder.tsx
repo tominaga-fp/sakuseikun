@@ -233,7 +233,8 @@ function parseSections(text: string): Record<string, string> {
 
   const keieiPart = draftText.split(/【補助事業計画(?:書)?】/)[0] || draftText;
   // Match both "3-1." (hyphenated) and "3." (single digit) section headings
-  const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d(?:-\d)?)\.\s*(.+?)(?:\*{0,2})\s*\n([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d(?:-\d)?\.)|$)/g;
+  // 否定先読み (?!\s*\d-\d\.) でグループ見出し(直後にサブセクションが続く単独の N.)をスキップ
+  const keieiRegex = /(?:^|\n)(?:\*{0,2}#{0,3}\s*)?(\d(?:-\d)?)\.\s*(.+?)(?:\*{0,2})\s*\n(?!\s*\d-\d\.)([\s\S]*?)(?=(?:\n(?:\*{0,2}#{0,3}\s*)?\d(?:-\d)?\.)|$)/g;
   let match;
   while ((match = keieiRegex.exec(keieiPart)) !== null) {
     const id = match[1];
