@@ -22,3 +22,8 @@ CLAUDE.mdの指示により、料金・方針・DB・重要バグ修正を記録
 - [実装予定] consume-countトリガーをsession_start→chat_sessions INSERT時に変更
 - [競合] Hojofy発見。¥3,980/5件〜。GPT系推定。テンプレ穴埋め型。さくせいくんは「対話型×コンサル業務効率化」で差別化。詳細: knowledge/competitive-analysis.md
 - [予定] 採点機能改善（点数が甘い問題、アンケート後に対応）
+
+## 2026-04-14
+- [バグ修正] /api/generate 500エラー(FUNCTION_INVOCATION_FAILED)を修正: モデル名を claude-sonnet-4-20250514 → claude-sonnet-4-5 に更新（旧モデル廃止と推定、2秒で即死していた）
+- [改善] 生成APIのエラーレスポンスに detail フィールドを追加。今後の本番障害切り分けを容易に
+- [設定] CLAUDE.md の技術スタック記述も claude-sonnet-4-5 に同期

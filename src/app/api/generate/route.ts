@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
   try {
     const stream = await anthropic.messages.stream({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 16000,
       system: SYSTEM_PROMPT,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
@@ -108,8 +108,9 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error("Generation error:", err);
+    const detail = err instanceof Error ? err.message : "unknown";
     return NextResponse.json(
-      { error: "生成に失敗しました" },
+      { error: "生成に失敗しました", detail },
       { status: 500 }
     );
   }

@@ -10,7 +10,7 @@ https://sakuseikun.jp
 ## 技術スタック
 - Next.js 14 (App Router) / React 18 / TypeScript
 - Supabase (PostgreSQL + Auth + RLS)
-- Anthropic Claude API (claude-sonnet-4)
+- Anthropic Claude API (claude-sonnet-4-5)
 - Tailwind CSS（和紙テーマ: washi #f5f2eb / 朱 #0f2346 / 金 #b8860b）
 - Vercel デプロイ
 - FirstPay 決済
