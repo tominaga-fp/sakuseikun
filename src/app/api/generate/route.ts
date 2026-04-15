@@ -60,11 +60,34 @@ export async function POST(request: Request) {
   const { messages } = (await request.json()) as { messages: ChatMessage[] };
 
   try {
+    const secondToLastIdx = messages.length - 2;
+    const mappedMessages = messages.map((m, idx) => {
+      if (idx === secondToLastIdx) {
+        return {
+          role: m.role,
+          content: [
+            {
+              type: "text" as const,
+              text: m.content,
+              cache_control: { type: "ephemeral" as const },
+            },
+          ],
+        };
+      }
+      return { role: m.role, content: m.content };
+    });
+
     const stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-5",
       max_tokens: 16000,
-      system: SYSTEM_PROMPT,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: mappedMessages,
     });
 
     // ログ記録（カウント消費は /api/consume-count で実施）
