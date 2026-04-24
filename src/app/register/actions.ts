@@ -2,58 +2,6 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const NOTIFY_TO = "jtominaga@tominaga-fp.com";
-const FROM_EMAIL = "info@sakuseikun.jp";
-
-function escapeHtml(str: string): string {
-  if (!str) return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-async function sendMail(to: string, subject: string, htmlContent: string) {
-  console.log("[sendMail] 開始 to:", to, "subject:", subject);
-
-  if (!SENDGRID_API_KEY) {
-    console.error("[sendMail] SENDGRID_API_KEY未設定 - 送信スキップ");
-    return;
-  }
-  console.log("[sendMail] SENDGRID_API_KEY確認OK, FROM:", FROM_EMAIL);
-
-  const body = JSON.stringify({
-    personalizations: [{ to: [{ email: to }] }],
-    from: { email: FROM_EMAIL, name: "補助金計画書さくせいくん（とみながFP事務所）" },
-    subject,
-    content: [{ type: "text/html", value: htmlContent }],
-  });
-
-  let res: Response;
-  try {
-    res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body,
-    });
-  } catch (fetchErr) {
-    console.error("[sendMail] fetchエラー:", fetchErr);
-    return;
-  }
-
-  if (!res.ok) {
-    const errText = await res.text();
-    console.error("[sendMail] SendGridエラー status:", res.status, "body:", errText);
-  } else {
-    console.log("[sendMail] 送信成功 status:", res.status, "to:", to);
-  }
-}
-
 const SYSTEME_TAG_NAME = "さくせいくん19回無料登録";
 
 async function getOrCreateSystemeTagId(apiKey: string): Promise<number | null> {
@@ -224,65 +172,20 @@ export async function registerUser(data: {
       return { error: error.message };
     }
 
-    console.log("[registerUser] ユーザー作成成功 - メール送信開始");
+    console.log("[registerUser] ユーザー作成成功 - Systeme連携開始");
 
-    // ユーザー作成成功後に通知メールをここで送信
-    // （セッション確立前に呼ぶことでミドルウェアのリダイレクト問題を回避）
-    await Promise.all([
-      notifyNewUser({
-        email: data.email,
-        lastName: data.lastName,
-        firstName: data.firstName,
-        companyName: data.companyName,
-        userType: data.userType,
-      }),
-      addSystemeContact({
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        companyName: data.companyName,
-      }),
-    ]);
+    // Systeme.io へのコンタクト登録（管理者通知メールはSendGrid廃止に伴い削除）
+    await addSystemeContact({
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      companyName: data.companyName,
+    });
 
     return { error: null };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[registerUser] 予期しないエラー:", message);
     return { error: message };
-  }
-}
-
-export async function notifyNewUser(data: {
-  email: string;
-  lastName: string;
-  firstName: string;
-  companyName: string;
-  userType: string;
-}) {
-  const { email, lastName, firstName, companyName, userType } = data;
-  console.log("[notifyNewUser] 呼び出し開始 email:", email);
-
-  const formattedDate = new Date().toLocaleString("ja-JP", {
-    timeZone: "Asia/Tokyo",
-  });
-
-  // 1. 管理者への通知メール
-  const adminHtml = `
-    <h2>新規ユーザー登録通知</h2>
-    <table style="border-collapse:collapse;font-size:14px;">
-      <tr><td style="padding:6px 12px;font-weight:bold;">メール</td><td style="padding:6px 12px;">${escapeHtml(email)}</td></tr>
-      <tr><td style="padding:6px 12px;font-weight:bold;">氏名</td><td style="padding:6px 12px;">${escapeHtml(lastName)} ${escapeHtml(firstName)}</td></tr>
-      <tr><td style="padding:6px 12px;font-weight:bold;">会社名</td><td style="padding:6px 12px;">${escapeHtml(companyName) || "未入力"}</td></tr>
-      <tr><td style="padding:6px 12px;font-weight:bold;">利用者区分</td><td style="padding:6px 12px;">${userType === "business" ? "自社で申請" : "他社の申請支援"}</td></tr>
-      <tr><td style="padding:6px 12px;font-weight:bold;">登録日時</td><td style="padding:6px 12px;">${formattedDate}</td></tr>
-    </table>
-  `;
-
-  try {
-    console.log("[notifyNewUser] 管理者通知メール送信開始");
-    await sendMail(NOTIFY_TO, `【さくせいくん】新規登録: ${lastName}${firstName} (${email})`, adminHtml);
-    console.log("[notifyNewUser] 管理者通知メール送信完了");
-  } catch (err) {
-    console.error("[notifyNewUser] エラー:", err);
   }
 }

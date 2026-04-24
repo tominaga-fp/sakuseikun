@@ -28,3 +28,13 @@ CLAUDE.mdの指示により、料金・方針・DB・重要バグ修正を記録
 - [改善] 生成APIのエラーレスポンスに detail フィールドを追加。今後の本番障害切り分けを容易に
 - [設定] CLAUDE.md の技術スタック記述も claude-sonnet-4-5 に同期
 - [バグ修正] 左パネルの項目別タブで 1-1 / 2-1 / 4-1 が ● にならない問題を修正: parseSectionsの正規表現に否定先読み (?!\s*\d-\d\.) を追加。グループ見出し「1. 経営計画」が直後のサブセクション「1-1.」を吸い込んでいたのが原因
+
+## 2026-04-24
+- [障害] SendGrid Email APIのトライアル期間終了により、Supabase Auth経由の認証メール(パスワードリセット)送信が停止。sensui623@gmail.comからログイン不能との報告で発覚。recovery_sent_atの最終更新が3/24のため、実質的な停止は3月下旬以降と推定。判明影響は1名（他ユーザーはリセット不要だったため表面化せず）
+- [設定変更] Supabase Auth SMTPをSendGrid → Resendに切替。無料プラン(月3000通/日100通)で現行用途(パスワードリセットのみ)は十分。送信元info@sakuseikun.jpは変更なし
+- [設定変更] Vercel DNSに3レコード追加: resend._domainkey(TXT/DKIM)、send(MX/feedback-smtp.ap-northeast-1.amazonses.com priority10)、send(TXT/SPF "v=spf1 include:amazonses.com ~all")。ドメイン認証Verified完了
+- [方針] 7月の4000件DM配信はSystemeで別経路のため、Resendは無料プラン維持予定
+- [コード変更] register/actions.tsからSendGrid通知メール機能(sendMail/notifyNewUser)を削除。新規登録時の管理者通知は廃止、Systeme.io連携のみ残す。関連して.env.local.exampleからSENDGRID_API_KEY、privacy-policyのSendGrid記載→Resendに変更、CLAUDE.md技術スタックもResendに更新
+- [後処理TODO] SendGrid APIキー3本(sakuseikun_gmail / sakuseikun_salesmail_antigravity / sakuseikun)をセキュリティのため無効化。Vercel環境変数SENDGRID_API_KEYも削除。SendGridアカウント自体は放置可（請求なし）
+- [残タスク] Antigravity(IDE)とResendの連携（一斉送信用途）は別作業として後日対応
+- [教訓] SendGridは2023年以降無料プランを60日トライアル化。3月に有料→無料に戻した時点でトライアル残日数消費中だった。警告メールはinfo@sakuseikun.jpに届いていた可能性あるが見落とし。今後は月1回でも自分宛リセットメールテストで早期検知可能

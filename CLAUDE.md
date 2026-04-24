@@ -14,7 +14,7 @@ https://sakuseikun.jp
 - Tailwind CSS（和紙テーマ: washi #f5f2eb / 朱 #0f2346 / 金 #b8860b）
 - Vercel デプロイ
 - FirstPay 決済
-- SendGrid メール
+- Resend メール（Supabase Auth SMTP経由）
 - GA4 (G-V5DVEQ2B1M)
 
 ## フォルダ構成
