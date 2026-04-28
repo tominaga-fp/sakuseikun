@@ -578,8 +578,49 @@ html{scroll-behavior:smooth;}
           </div>
         </section>
 
-        {/* DEVELOPER */}
+        {/* VOICES */}
         <section style={{ padding: "100px 32px", background: "var(--bg)" }}>
+          <div className="sec-inner">
+            <h2 className="sec-title fi">ご利用者の声</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
+              {[
+                {
+                  text: "今回のように全文を一気に作成させる機能には感動いたしました。AIは弊所も積極的に利用していますが、打合せの音声・動画から起こせるという部分も大変興味深いです。御社の開発には大きな期待をしています。",
+                  role: "行政書士",
+                },
+                {
+                  text: "文案がサクッと作れてよかったです。文章の内容もそのまま使えるわけではないですが、大幅修正ではなく行けそうなので、効率化としてとてもいいと思います。",
+                  role: "行政書士（監修）",
+                },
+                {
+                  text: "ツボを押さえた文章を構築してもらえたので助かりました。補助金向けの文章品質が汎用AIとは違うと感じました。",
+                  role: "行政書士法人",
+                },
+                {
+                  text: "時間がない中、ひとまず商工会議所に提出できました。簡単にドラフトができたのは助かりました。",
+                  role: "行政書士法人",
+                },
+                {
+                  text: "ChatGPT・Geminiでは全然見当違いな回答で使えなかったですが、このシステムはしっかりしています。様式に準拠した出力がされるので便利です。",
+                  role: "行政書士",
+                },
+                {
+                  text: "ヒアリング内容を入力するだけで、ある程度の計画書が出来上がります。作業工程が大幅に省略化されました。",
+                  role: "行政書士",
+                },
+              ].map((v, i) => (
+                <div key={i} className="fi" style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: "16px", padding: "32px 28px" }}>
+                  <div style={{ fontSize: "32px", color: "var(--gold)", lineHeight: 1, marginBottom: "16px" }}>"</div>
+                  <p style={{ fontSize: "16px", color: "var(--ink-mid)", lineHeight: 2, marginBottom: "20px" }}>{v.text}</p>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--navy)" }}>{v.role}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* DEVELOPER */}
+        <section style={{ padding: "100px 32px", background: "var(--white)" }}>
           <div className="sec-inner">
             <h2 className="sec-title fi">開発者について</h2>
             <div
