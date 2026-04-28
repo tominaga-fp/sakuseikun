@@ -610,7 +610,7 @@ html{scroll-behavior:smooth;}
                 },
               ].map((v, i) => (
                 <div key={i} className="fi" style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: "16px", padding: "32px 28px" }}>
-                  <div style={{ fontSize: "32px", color: "var(--gold)", lineHeight: 1, marginBottom: "16px" }}>"</div>
+                  <div style={{ fontSize: "32px", color: "var(--gold)", lineHeight: 1, marginBottom: "16px" }}>&ldquo;</div>
                   <p style={{ fontSize: "16px", color: "var(--ink-mid)", lineHeight: 2, marginBottom: "20px" }}>{v.text}</p>
                   <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--navy)" }}>{v.role}</div>
                 </div>
