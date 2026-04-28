@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const CTA_HREF = "/pricing";
+const CTA_HREF = "https://sakuseikun.jp/register?ref=monitor";
 
 export default function LpPage() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -67,37 +67,39 @@ export default function LpPage() {
 .lp-root .btn-sm{background:var(--navy);color:#fff;font-size:15px;font-weight:700;padding:10px 22px;border-radius:8px;text-decoration:none;transition:all 0.2s;}
 .lp-root .btn-sm:hover{background:var(--navy-mid);transform:translateY(-1px);}
 
+/* ALERT */
+.lp-root .alert-bar{background:var(--red-bg);padding:11px 24px;text-align:center;}
+.lp-root .alert-bar p{font-size:16px;color:#fff;}
+.lp-root .alert-bar span{color:#ffcc66;font-weight:700;}
+
 /* HERO */
 .lp-root .hero{padding:80px 32px 96px;background:linear-gradient(135deg,#f8faff 0%,#ffffff 50%,#fdf8ec 100%);position:relative;overflow:hidden;}
 .lp-root .hero::before{content:'';position:absolute;top:0;right:0;width:600px;height:600px;background:radial-gradient(circle at 70% 30%,rgba(37,99,235,0.06) 0%,transparent 60%);pointer-events:none;}
 .lp-root .hero::after{content:'';position:absolute;bottom:0;left:0;width:400px;height:400px;background:radial-gradient(circle,rgba(184,134,11,0.05) 0%,transparent 60%);pointer-events:none;}
 .lp-root .hero-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:72px;align-items:center;position:relative;z-index:1;}
 .lp-root .hero-eyebrow{font-size:15px;color:var(--ink-light);font-weight:600;letter-spacing:0.1em;margin-bottom:12px;}
+.lp-root .hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-light);color:var(--blue-accent);font-size:14px;font-weight:700;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(37,99,235,0.15);}
 .lp-root .hero-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:clamp(34px,4vw,52px);color:var(--ink);line-height:1.2;margin-bottom:20px;letter-spacing:-0.02em;}
 .lp-root .hero-title span{color:var(--navy);}
 .lp-root .hero-sub{font-size:19px;color:var(--ink-mid);line-height:1.9;}
 
-/* PRICE CARD */
-.lp-root .hero-price-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.1),0 4px 16px rgba(0,0,0,0.06);animation:lpFloatUp 0.8s ease both 0.3s;}
+/* FORM CARD */
+.lp-root .hero-form-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.1),0 4px 16px rgba(0,0,0,0.06);animation:lpFloatUp 0.8s ease both 0.3s;}
 @keyframes lpFloatUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-.lp-root .price-card-heading{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px;}
-.lp-root .price-card-sub{font-size:15px;color:var(--ink-light);margin-bottom:20px;line-height:1.7;}
-.lp-root .plan-row{border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
-.lp-root .plan-row.recommended{border-color:var(--navy);background:linear-gradient(135deg,#f0f4ff 0%,#ffffff 100%);}
-.lp-root .plan-label{font-size:13px;font-weight:700;color:var(--ink-light);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
-.lp-root .plan-badge{background:var(--gold);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;}
-.lp-root .plan-price{font-family:'DM Sans',sans-serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1;}
-.lp-root .plan-price span{font-size:14px;font-weight:400;color:var(--ink-light);}
-.lp-root .plan-limit{font-size:13px;color:var(--ink-mid);margin-top:4px;}
+.lp-root .form-heading{font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.lp-root .form-sub{font-size:15px;color:var(--ink-light);margin-bottom:16px;line-height:1.7;}
+.lp-root .benefit-box{background:var(--green-bg);border-left:3px solid #16a34a;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:20px;}
+.lp-root .benefit-row{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:var(--green);line-height:1.6;}
+.lp-root .benefit-row+.benefit-row{margin-top:8px;}
+.lp-root .benefit-num{background:#16a34a;color:#fff;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.lp-root .form-group{margin-bottom:14px;}
+.lp-root .form-group label{display:block;font-size:14px;font-weight:700;color:var(--ink-mid);margin-bottom:6px;letter-spacing:0.03em;}
+.lp-root .form-group label .req{color:#b91c1c;margin-left:3px;font-weight:400;}
+.lp-root .form-control{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-size:16px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--bg);outline:none;transition:border-color 0.15s;}
+.lp-root .form-control:focus{border-color:var(--blue-accent);background:#fff;}
 .lp-root .cta-btn{width:100%;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:17px;font-size:17px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;letter-spacing:0.04em;margin-top:6px;transition:all 0.2s;}
 .lp-root .cta-btn:hover{background:var(--navy-mid);transform:translateY(-1px);}
 .lp-root .form-note{text-align:center;font-size:14px;color:var(--ink-light);margin-top:10px;}
-
-/* SUPERVISION */
-.lp-root .supervision-bar{background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 32px;}
-.lp-root .supervision-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:16px;justify-content:center;}
-.lp-root .supervision-label{font-size:13px;font-weight:700;color:var(--ink-light);letter-spacing:0.08em;}
-.lp-root .supervision-name{font-size:16px;font-weight:700;color:var(--navy);}
 
 /* STATS */
 .lp-root .stats-sec{background:var(--navy);padding:52px 32px;}
@@ -157,24 +159,6 @@ export default function LpPage() {
 .lp-root .bonus-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
 .lp-root .bonus-item-num{background:var(--gold);color:#fff;font-size:12px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 
-/* PRICING */
-.lp-root .pricing-sec{padding:100px 32px;background:var(--white);}
-.lp-root .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:760px;margin:0 auto;}
-.lp-root .pricing-card{border:2px solid var(--border);border-radius:20px;padding:40px 36px;}
-.lp-root .pricing-card.recommended{border-color:var(--navy);position:relative;}
-.lp-root .pricing-rec-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--navy);color:var(--gold);font-size:13px;font-weight:700;padding:5px 20px;border-radius:999px;white-space:nowrap;}
-.lp-root .pricing-plan-name{font-size:15px;font-weight:700;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:12px;}
-.lp-root .pricing-price{font-family:'DM Sans',sans-serif;font-size:clamp(32px,4vw,46px);font-weight:700;color:var(--navy);line-height:1;margin-bottom:6px;}
-.lp-root .pricing-price span{font-size:16px;font-weight:400;color:var(--ink-light);}
-.lp-root .pricing-per{font-size:14px;color:var(--ink-light);margin-bottom:20px;}
-.lp-root .pricing-limit{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:20px;padding:12px 16px;background:var(--bg);border-radius:8px;}
-.lp-root .pricing-features{list-style:none;display:grid;gap:10px;margin-bottom:32px;}
-.lp-root .pricing-features li{font-size:15px;color:var(--ink-mid);display:flex;align-items:flex-start;gap:8px;}
-.lp-root .pricing-features li::before{content:'\\2713';color:var(--navy);font-weight:700;flex-shrink:0;}
-.lp-root .pricing-cta{display:block;width:100%;background:var(--navy);color:#fff;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;padding:16px;border-radius:10px;text-decoration:none;text-align:center;transition:all 0.2s;}
-.lp-root .pricing-cta:hover{background:var(--navy-mid);transform:translateY(-1px);}
-.lp-root .pricing-note{font-size:13px;color:var(--ink-light);margin-top:32px;text-align:center;line-height:2.2;}
-
 /* FAQ */
 .lp-root .faq-sec{padding:100px 32px;background:var(--bg);}
 .lp-root .faq-list{display:grid;gap:14px;}
@@ -210,7 +194,6 @@ export default function LpPage() {
   .lp-root .bonus-box{grid-template-columns:1fr;gap:32px;padding:36px 24px;}
   .lp-root .stats-inner{grid-template-columns:1fr;gap:24px;}
   .lp-root .header-nav{display:none;}
-  .lp-root .pricing-grid{grid-template-columns:1fr;}
 }
 @media(max-width:600px){
   .lp-root .header{padding:14px 18px;}
@@ -232,14 +215,23 @@ export default function LpPage() {
           <nav className="header-nav">
             <a href="#features">機能</a>
             <a href="#how">使い方</a>
-            <a href="#pricing">料金</a>
+            <a href="#bonus">特典</a>
             <a href="#faq">FAQ</a>
             <a href="/login">ログイン</a>
             <a href={CTA_HREF} className="btn-sm" style={{ color: '#ffffff' }}>
-              申し込む
+              無料登録
             </a>
           </nav>
         </header>
+
+        {/* ALERT */}
+        <div className="alert-bar">
+          <p>
+            📣 モニター限定特典：
+            <span>4月30日まで計画書作成が無制限</span>
+            ＋ヒアリングシートプレゼント
+          </p>
+        </div>
 
         {/* HERO */}
         <section className="hero">
@@ -248,6 +240,22 @@ export default function LpPage() {
               <p className="hero-eyebrow">
                 補助金業務に携わる行政書士の方へ
               </p>
+              <div
+                style={{
+                  display: "inline-block",
+                  background: "linear-gradient(135deg,#b8860b,#d4a017)",
+                  color: "#fff",
+                  fontSize: "22px",
+                  fontWeight: 900,
+                  padding: "14px 32px",
+                  borderRadius: "10px",
+                  marginBottom: "24px",
+                  letterSpacing: "0.05em",
+                  boxShadow: "0 4px 20px rgba(184,134,11,0.4)",
+                }}
+              >
+                🎁 モニター募集中・4月30日まで無制限
+              </div>
               <h1 className="hero-title">
                 持続化補助金の計画書下書きを、
                 <br />
@@ -258,25 +266,26 @@ export default function LpPage() {
               </p>
             </div>
 
-            {/* Right: Pricing summary */}
-            <div>
-              <div className="hero-price-card">
-                <p className="price-card-heading">料金プラン</p>
-                <p className="price-card-sub">
-                  月払い・年払いの2プラン。案件数に合わせてお選びください。
+            {/* Right: CTA */}
+            <div id="form">
+              <div className="hero-form-card">
+                <p className="form-heading">今すぐ無料で試す →</p>
+                <p className="form-sub">
+                  登録後すぐにご利用いただけます。クレジットカード不要。
                 </p>
-                <div className="plan-row">
-                  <div className="plan-label">月額プラン</div>
-                  <div className="plan-price">¥29,800<span> / 月（税込）</span></div>
-                  <div className="plan-limit">毎月3件まで</div>
-                </div>
-                <div className="plan-row recommended">
-                  <div className="plan-label">
-                    年額プラン
-                    <span className="plan-badge">50% OFF</span>
+                <div className="benefit-box">
+                  <div className="benefit-row">
+                    <div className="benefit-num">1</div>
+                    <span>
+                      4月30日まで計画書の作成が<strong>無制限</strong>
+                    </span>
                   </div>
-                  <div className="plan-price">¥178,800<span> / 年（税込）</span></div>
-                  <div className="plan-limit">年間30件まで・月換算¥14,900</div>
+                  <div className="benefit-row">
+                    <div className="benefit-num">2</div>
+                    <span>
+                      プロ仕様の<strong>ヒアリングシート</strong>をプレゼント
+                    </span>
+                  </div>
                 </div>
                 <a
                   href={CTA_HREF}
@@ -287,23 +296,15 @@ export default function LpPage() {
                     textDecoration: "none",
                   }}
                 >
-                  今すぐ申し込む →
+                  今すぐ無料で試す →
                 </a>
                 <p className="form-note">
-                  ご不明な点はお気軽にお問い合わせください。
+                  登録は無料です。いつでも解除できます。
                 </p>
               </div>
             </div>
           </div>
         </section>
-
-        {/* SUPERVISION */}
-        <div className="supervision-bar">
-          <div className="supervision-inner">
-            <span className="supervision-label">監修</span>
-            <span className="supervision-name">クルーズ行政書士事務所　太田吉博</span>
-          </div>
-        </div>
 
         {/* STATS */}
         <section className="stats-sec">
@@ -398,9 +399,30 @@ export default function LpPage() {
                 }}
               >
                 <div style={{ display: "flex", gap: "6px" }}>
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#ff5f57" }} />
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#febc2e" }} />
-                  <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#28c840" }} />
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      background: "#ff5f57",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      background: "#febc2e",
+                    }}
+                  />
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      background: "#28c840",
+                    }}
+                  />
                 </div>
                 <div
                   style={{
@@ -427,19 +449,49 @@ export default function LpPage() {
                   justifyContent: "space-between",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ background: "#0f2346", color: "#b8860b", fontSize: "11px", fontWeight: 900, padding: "3px 8px", borderRadius: "4px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "#0f2346",
+                      color: "#b8860b",
+                      fontSize: "11px",
+                      fontWeight: 900,
+                      padding: "3px 8px",
+                      borderRadius: "4px",
+                    }}
+                  >
                     さ
                   </div>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#0f2346" }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "#0f2346",
+                    }}
+                  >
                     補助金計画書 さくせいくん
                   </span>
                   <span style={{ fontSize: "11px", color: "#6b7280" }}>
                     運営：とみながFP事務所
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#6b7280" }}>
-                  <span style={{ color: "#0f2346", fontWeight: 700 }}>残り2件</span>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "16px",
+                    fontSize: "12px",
+                    color: "#6b7280",
+                  }}
+                >
+                  <span style={{ color: "#0f2346", fontWeight: 700 }}>
+                    無制限（4/30まで）
+                  </span>
                   <span>ログアウト</span>
                 </div>
               </div>
@@ -455,63 +507,285 @@ export default function LpPage() {
                   fontWeight: 500,
                 }}
               >
-                第19回公募対応
+                第19回限定・2026年4月30日まで有効
               </div>
               {/* App body */}
-              <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 220px", minHeight: "420px", background: "#fff" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "240px 1fr 220px",
+                  minHeight: "420px",
+                  background: "#fff",
+                }}
+              >
                 {/* Left panel */}
-                <div style={{ borderRight: "1px solid #e5e7eb", padding: "16px", background: "#f9fafb" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#111827", marginBottom: "12px" }}>入力パネル</div>
-                  <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px" }}>HP URL</div>
-                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "7px 10px", fontSize: "12px", color: "#9ca3af", marginBottom: "10px" }}>
+                <div
+                  style={{
+                    borderRight: "1px solid #e5e7eb",
+                    padding: "16px",
+                    background: "#f9fafb",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#111827",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    入力パネル
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#6b7280",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    HP URL
+                  </div>
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      padding: "7px 10px",
+                      fontSize: "12px",
+                      color: "#9ca3af",
+                      marginBottom: "10px",
+                    }}
+                  >
                     https://example.com
                   </div>
-                  <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px" }}>社名・屋号</div>
-                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "7px 10px", fontSize: "12px", color: "#9ca3af", marginBottom: "10px" }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#6b7280",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    社名・屋号
+                  </div>
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      padding: "7px 10px",
+                      fontSize: "12px",
+                      color: "#9ca3af",
+                      marginBottom: "10px",
+                    }}
+                  >
                     例：株式会社山田商店
                   </div>
-                  <div style={{ fontSize: "11px", color: "#6b7280", marginBottom: "4px" }}>ヒアリング</div>
-                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "6px", padding: "7px 10px", fontSize: "12px", color: "#374151", marginBottom: "12px", lineHeight: 1.6, minHeight: "72px" }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#6b7280",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    ヒアリング
+                  </div>
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "6px",
+                      padding: "7px 10px",
+                      fontSize: "12px",
+                      color: "#374151",
+                      marginBottom: "12px",
+                      lineHeight: 1.6,
+                      minHeight: "72px",
+                    }}
+                  >
                     飲食店・創業8年・従業員3名・券売機導入で会計効率化を検討中...
                   </div>
-                  <div style={{ background: "#0f2346", color: "#fff", borderRadius: "8px", padding: "9px", textAlign: "center", fontSize: "13px", fontWeight: 700 }}>
+                  <div
+                    style={{
+                      background: "#0f2346",
+                      color: "#fff",
+                      borderRadius: "8px",
+                      padding: "9px",
+                      textAlign: "center",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                    }}
+                  >
                     情報を送信
                   </div>
-                  <div style={{ marginTop: "14px", fontSize: "11px", color: "#374151", fontWeight: 700 }}>経営計画</div>
-                  <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "4px", lineHeight: 1.8 }}>
-                    ○ 1-1. 自社の概要<br />
-                    ○ 1-2. 売上・利益の状況<br />
-                    ○ 1-3. 経営課題<br />
-                    ○ 2-1. 市場の動向
+                  <div
+                    style={{
+                      marginTop: "14px",
+                      fontSize: "11px",
+                      color: "#374151",
+                      fontWeight: 700,
+                    }}
+                  >
+                    経営計画
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#6b7280",
+                      marginTop: "4px",
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    ○ 1-1. 自社の概要
+                    <br />
+                    ○ 1-2. 売上・利益の状況
+                    <br />
+                    ○ 1-3. 経営課題
+                    <br />○ 2-1. 市場の動向
                   </div>
                 </div>
                 {/* Chat panel */}
-                <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ display: "flex", gap: "8px", borderBottom: "1px solid #e5e7eb", paddingBottom: "12px" }}>
-                    <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f2346", borderBottom: "2px solid #0f2346", paddingBottom: "10px", marginBottom: "-13px" }}>💬 AIチャット</div>
-                    <div style={{ fontSize: "13px", color: "#6b7280", marginLeft: "16px" }}>📋 項目別</div>
+                <div
+                  style={{
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      borderBottom: "1px solid #e5e7eb",
+                      paddingBottom: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#0f2346",
+                        borderBottom: "2px solid #0f2346",
+                        paddingBottom: "10px",
+                        marginBottom: "-13px",
+                      }}
+                    >
+                      💬 AIチャット
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#6b7280",
+                        marginLeft: "16px",
+                      }}
+                    >
+                      📋 項目別
+                    </div>
                   </div>
-                  <div style={{ background: "#f9fafb", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#374151", lineHeight: 1.75, border: "1px solid #e5e7eb" }}>
-                    こんにちは。持続化補助金（第19回）の事業計画書作成をサポートするAIです。<br /><br />
+                  <div
+                    style={{
+                      background: "#f9fafb",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      fontSize: "13px",
+                      color: "#374151",
+                      lineHeight: 1.75,
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    こんにちは。持続化補助金（第19回）の事業計画書作成をサポートするAIです。
+                    <br />
+                    <br />
                     ヒアリング情報をもとに、計画書の下書きを一緒に作り上げていきます。
                   </div>
-                  <div style={{ background: "#eff6ff", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#1e40af", lineHeight: 1.75, border: "1px solid #bfdbfe" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#2563eb", marginBottom: "6px" }}>✓ 下書き生成完了</div>
-                    【経営計画 1-1. 自社の概要】株式会社〇〇は、2016年の創業以来、地域密着型の飲食業を営んでおり、ラーメン専門店として地域顧客から高い支持を得ている...
+                  <div
+                    style={{
+                      background: "#eff6ff",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      fontSize: "13px",
+                      color: "#1e40af",
+                      lineHeight: 1.75,
+                      border: "1px solid #bfdbfe",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "#2563eb",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      ✓ 下書き生成完了
+                    </div>
+                    【経営計画 1-1.
+                    自社の概要】株式会社〇〇は、2016年の創業以来、地域密着型の飲食業を営んでおり、ラーメン専門店として地域顧客から高い支持を得ている...
                   </div>
-                  <div style={{ marginTop: "auto", background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#9ca3af" }}>
+                  <div
+                    style={{
+                      marginTop: "auto",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "8px",
+                      padding: "10px 14px",
+                      fontSize: "13px",
+                      color: "#9ca3af",
+                    }}
+                  >
                     メッセージを入力...
                   </div>
                 </div>
                 {/* Right scoring panel */}
-                <div style={{ borderLeft: "1px solid #e5e7eb", padding: "16px", background: "#f9fafb" }}>
-                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#111827", marginBottom: "4px", textAlign: "center" }}>完成度チェック</div>
-                  <div style={{ textAlign: "center", marginBottom: "12px" }}>
-                    <span style={{ fontSize: "36px", fontWeight: 700, color: "#dc2626" }}>0</span>
-                    <span style={{ fontSize: "16px", color: "#6b7280" }}>/75</span>
+                <div
+                  style={{
+                    borderLeft: "1px solid #e5e7eb",
+                    padding: "16px",
+                    background: "#f9fafb",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "#111827",
+                      marginBottom: "4px",
+                      textAlign: "center",
+                    }}
+                  >
+                    完成度チェック
                   </div>
-                  <div style={{ fontSize: "11px", color: "#9ca3af", textAlign: "center", marginBottom: "12px" }}>ドラフト生成後に表示されます</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ textAlign: "center", marginBottom: "12px" }}>
+                    <span
+                      style={{
+                        fontSize: "36px",
+                        fontWeight: 700,
+                        color: "#dc2626",
+                      }}
+                    >
+                      0
+                    </span>
+                    <span style={{ fontSize: "16px", color: "#6b7280" }}>
+                      /75
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#9ca3af",
+                      textAlign: "center",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    ドラフト生成後に表示されます
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px",
+                    }}
+                  >
                     {[
                       "#1 直近の数値を表で示しているか",
                       "#2 課題を機会損失金額で定量化",
@@ -519,12 +793,29 @@ export default function LpPage() {
                       "#4 ターゲットを具体的に定義",
                       "#5 強みを数値根拠で示している",
                     ].map((item) => (
-                      <div key={item} style={{ fontSize: "11px", color: "#374151", display: "flex", justifyContent: "space-between" }}>
+                      <div
+                        key={item}
+                        style={{
+                          fontSize: "11px",
+                          color: "#374151",
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         <span>{item}</span>
                         <span style={{ color: "#9ca3af" }}>0/5</span>
                       </div>
                     ))}
-                    <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "4px", textAlign: "center" }}>… 全15項目</div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "#6b7280",
+                        marginTop: "4px",
+                        textAlign: "center",
+                      }}
+                    >
+                      … 全15項目
+                    </div>
                   </div>
                 </div>
               </div>
@@ -592,11 +883,25 @@ export default function LpPage() {
                 padding: "48px 44px",
               }}
             >
-              <div style={{ fontSize: "17px", color: "var(--ink-mid)", lineHeight: 2.1, marginBottom: "32px" }}>
-                <p style={{ margin: '0 0 1em' }}>中小企業のFPとして財務・経営改善に携わり、<br />補助金を6年研究してきた知見をAIに組み込んだWebツールです。</p>
-                <p style={{ margin: 0 }}>エンジニアでもない私が、現場感覚を損なわずに作り上げました。</p>
+              <div
+                style={{
+                  fontSize: "17px",
+                  color: "var(--ink-mid)",
+                  lineHeight: 2.1,
+                  marginBottom: "32px",
+                }}
+              >
+                <p style={{margin: '0 0 1em'}}>中小企業のFPとして財務・経営改善に携わり、<br />補助金を6年研究してきた知見をAIに組み込んだWebツールです。</p>
+                <p style={{margin: 0}}>エンジニアでもない私が、現場感覚を損なわずに作り上げました。</p>
               </div>
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", fontSize: "15px", color: "var(--ink-light)" }}>
+              <div
+                style={{
+                  borderTop: "1px solid var(--border)",
+                  paddingTop: "20px",
+                  fontSize: "15px",
+                  color: "var(--ink-light)",
+                }}
+              >
                 とみながFP事務所　富永淳一
               </div>
             </div>
@@ -608,7 +913,7 @@ export default function LpPage() {
           <div className="sec-inner">
             <div className="bonus-box fi">
               <div>
-                <span className="bonus-tag">ご契約特典</span>
+                <span className="bonus-tag">無料登録特典</span>
                 <h2 className="bonus-title">
                   持続化補助金
                   <br />
@@ -616,7 +921,8 @@ export default function LpPage() {
                 </h2>
                 <div className="bonus-text">
                   <p>
-                    ご契約の特典として、「持続化補助金 採択ヒアリングシート」をお渡しします。
+                    無料登録の特典として、「持続化補助金
+                    採択ヒアリングシート」をお渡しします。
                   </p>
                   <p>
                     審査員の採点項目と対応した質問リスト。これ1枚で、ヒアリングが60分でまとまり、入力に必要な情報が漏れなく揃います。
@@ -625,26 +931,38 @@ export default function LpPage() {
                 </div>
               </div>
               <div className="bonus-visual">
-                <div className="bonus-visual-title">📋 ヒアリングシートの構成</div>
+                <div className="bonus-visual-title">
+                  📋 ヒアリングシートの構成
+                </div>
                 <div className="bonus-item">
                   <span className="bonus-item-num">1</span>
-                  <span>企業実態と収益構造（様式2 / 1-1・1-2対応）</span>
+                  <span>
+                    企業実態と収益構造（様式2 / 1-1・1-2対応）
+                  </span>
                 </div>
                 <div className="bonus-item">
                   <span className="bonus-item-num">2</span>
-                  <span>経営資源の深掘りと課題の特定（1-3・3対応）</span>
+                  <span>
+                    経営資源の深掘りと課題の特定（1-3・3対応）
+                  </span>
                 </div>
                 <div className="bonus-item">
                   <span className="bonus-item-num">3</span>
-                  <span>外部環境と戦略的ポジショニング（2-1・2-2対応）</span>
+                  <span>
+                    外部環境と戦略的ポジショニング（2-1・2-2対応）
+                  </span>
                 </div>
                 <div className="bonus-item">
                   <span className="bonus-item-num">4</span>
-                  <span>補助事業の具体性・実現可能性（2-2・2-3対応）</span>
+                  <span>
+                    補助事業の具体性・実現可能性（2-2・2-3対応）
+                  </span>
                 </div>
                 <div className="bonus-item">
                   <span className="bonus-item-num">5</span>
-                  <span>投資対効果と社会的意義（4-1・4-2対応）</span>
+                  <span>
+                    投資対効果と社会的意義（4-1・4-2対応）
+                  </span>
                 </div>
               </div>
             </div>
@@ -652,46 +970,31 @@ export default function LpPage() {
         </section>
 
         {/* PRICING */}
-        <section className="pricing-sec" id="pricing">
-          <div className="sec-inner">
-            <h2 className="sec-title fi" style={{ textAlign: "center" }}>料金プラン</h2>
-            <div className="pricing-grid fi">
-              {/* Monthly */}
-              <div className="pricing-card">
-                <div className="pricing-plan-name">月額プラン</div>
-                <div className="pricing-price">¥29,800<span> / 月（税込）</span></div>
-                <div className="pricing-limit">毎月3件まで</div>
-                <ul className="pricing-features">
-                  <li>毎月1日に3件付与</li>
-                  <li>未使用分の翌月繰り越しなし</li>
-                  <li>追加1件 ¥9,800</li>
-                  <li>ヒアリングシート（ご契約特典）</li>
-                  <li>過去の会話履歴はすべて保存</li>
-                </ul>
-                <a href={CTA_HREF} className="pricing-cta">月額プランで申し込む</a>
-              </div>
-              {/* Annual */}
-              <div className="pricing-card recommended">
-                <div className="pricing-rec-badge">おすすめ・50% OFF</div>
-                <div className="pricing-plan-name">年額プラン</div>
-                <div className="pricing-price">¥178,800<span> / 年（税込）</span></div>
-                <div className="pricing-per" style={{ color: "var(--gold)", fontWeight: 700 }}>月換算 ¥14,900（月額の50%OFF）</div>
-                <div className="pricing-limit">年間30件まで</div>
-                <ul className="pricing-features">
-                  <li>年間30件を自由に使える</li>
-                  <li>月をまたいでも件数が減らない</li>
-                  <li>追加1件 ¥9,800</li>
-                  <li>ヒアリングシート（ご契約特典）</li>
-                  <li>過去の会話履歴はすべて保存</li>
-                </ul>
-                <a href={CTA_HREF} className="pricing-cta">年額プランで申し込む</a>
-              </div>
+        <section style={{padding: '3rem 1rem 2rem', maxWidth: '860px', margin: '0 auto'}}>
+          <h2 style={{fontSize: '28px', fontWeight: 500, margin: '0 0 2rem'}}>料金プラン</h2>
+          <div style={{background: '#1a2744', borderRadius: '12px', padding: '2rem 2.5rem', marginBottom: '2rem', textAlign: 'center'}}>
+            <span style={{display: 'inline-block', background: '#c8a04a', color: '#fff', fontSize: '18px', fontWeight: 500, padding: '8px 20px', borderRadius: '4px', marginBottom: '1.25rem', letterSpacing: '0.05em'}}>無料モニター募集中</span>
+            <p style={{fontSize: '32px', fontWeight: 700, color: '#fff', margin: '0 0 0.5rem', lineHeight: 1.3}}>モニター期間中は完全無料</p>
+            <p style={{fontSize: '20px', fontWeight: 700, color: '#f59e0b', margin: '0 0 0.75rem'}}>クレジットカード不要</p>
+            <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7}}>4月30日まで計画書の作成が無制限で体験いただけます。生成されたテキストはそのままご利用可能。</p>
+          </div>
+          <p style={{fontSize: '11px', color: '#bbb', margin: '0 0 0.5rem'}}>通常料金（5月以降・ご参考）</p>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem', opacity: 0.6}}>
+            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '0.75rem 1rem'}}>
+              <p style={{fontSize: '10px', color: '#888', margin: '0 0 0.25rem'}}>月額プラン</p>
+              <p style={{fontSize: '18px', fontWeight: 500, margin: 0, lineHeight: 1}}>29,800<span style={{fontSize: '11px', fontWeight: 400, color: '#888'}}>円/月</span></p>
+              <p style={{fontSize: '10px', color: '#888', margin: '0.2rem 0 0'}}>月3件まで</p>
             </div>
-            <div className="pricing-note fi">
-              ※ 月3件を超える場合は1件¥9,800で追加できます。<br />
-              ※ 月払いは毎月1日課金。解約は前月20日までにご連絡ください。<br />
-              ※ 料金は税込表記です。
+            <div style={{background: '#f5f2eb', border: '0.5px solid #ddd', borderRadius: '8px', padding: '0.75rem 1rem'}}>
+              <p style={{fontSize: '10px', color: '#888', margin: '0 0 0.25rem'}}>年額プラン</p>
+              <p style={{fontSize: '18px', fontWeight: 500, margin: 0, lineHeight: 1}}>178,800<span style={{fontSize: '11px', fontWeight: 400, color: '#888'}}>円/年</span></p>
+              <p style={{fontSize: '10px', color: '#888', margin: '0.2rem 0 0'}}>月3件まで／月換算14,900円</p>
             </div>
+          </div>
+          <div style={{fontSize: '11px', color: '#888', lineHeight: 2.2}}>
+            <p style={{margin: 0}}>※ 月3件を超える場合は1件9,800円で追加できます。</p>
+            <p style={{margin: 0}}>※ モニター期間中に登録した方が、自動で有料プランに移行されることはありません。</p>
+            <p style={{margin: 0}}>※ 料金は税込表記です。</p>
           </div>
         </section>
 
@@ -700,6 +1003,15 @@ export default function LpPage() {
           <div className="sec-inner">
             <h2 className="sec-title fi">よくある質問</h2>
             <div className="faq-list">
+              <div className="faq-item fi">
+                <p className="faq-q">
+                  <span className="faq-q-mark">Q</span>
+                  モニター期間はいつまでですか？
+                </p>
+                <p className="faq-a">
+                  2026年4月30日までです。期間中は計画書の作成が無制限でご利用いただけます。
+                </p>
+              </div>
               <div className="faq-item fi">
                 <p className="faq-q">
                   <span className="faq-q-mark">Q</span>
@@ -712,19 +1024,10 @@ export default function LpPage() {
               <div className="faq-item fi">
                 <p className="faq-q">
                   <span className="faq-q-mark">Q</span>
-                  月3件を超えた場合はどうなりますか？
+                  登録にクレジットカードは必要ですか？
                 </p>
                 <p className="faq-a">
-                  超過した分は1件¥9,800（税込）で追加購入できます。既存の会話の続きは件数を消費しません。新しい会話（新案件）を作成するときのみカウントされます。
-                </p>
-              </div>
-              <div className="faq-item fi">
-                <p className="faq-q">
-                  <span className="faq-q-mark">Q</span>
-                  年額プランの30件はどのように使えますか？
-                </p>
-                <p className="faq-a">
-                  年間を通じて自由に30件まで使えます。月をまたいでもカウントはリセットされません。繁忙期にまとめて使うことができます。
+                  不要です。氏名・法人名・メールアドレスだけで登録できます。モニター期間終了後も、自動で有料プランに移行されることはありません。
                 </p>
               </div>
               <div className="faq-item fi">
@@ -733,7 +1036,7 @@ export default function LpPage() {
                   第19回以外にも使えますか？
                 </p>
                 <p className="faq-a">
-                  現在は第19回に対応した設計です。第20回以降の公募要領が発表され次第、順次対応してまいります。
+                  現在は第19回に対応した設計です。次回以降の公募要領が発表され次第、順次対応してまいります。
                 </p>
               </div>
               <div className="faq-item fi">
@@ -745,28 +1048,20 @@ export default function LpPage() {
                   入力いただいた情報は計画書生成のみに使用します。第三者への提供・販売は一切行いません。
                 </p>
               </div>
-              <div className="faq-item fi">
-                <p className="faq-q">
-                  <span className="faq-q-mark">Q</span>
-                  解約はいつでもできますか？
-                </p>
-                <p className="faq-a">
-                  月払いは前月20日までにご連絡いただければ翌月から停止できます。年払いは契約期間満了をもって終了となります（途中解約による返金は対応しておりません）。
-                </p>
-              </div>
             </div>
           </div>
         </section>
 
         {/* CTA */}
         <section className="cta-sec">
-          <h2 className="fi">補助金計画書の初稿作業を、もっとスマートに。</h2>
+          <h2 className="fi">まず登録して、試してください。</h2>
           <p className="fi">
-            様式2準拠・15項目採点ロジック搭載。<br />
-            クルーズ行政書士事務所　太田吉博 監修。
+            4月30日までモニター特典として計画書作成が無制限。
+            <br />
+            クレジットカード不要。この驚く品質を確かめてください。
           </p>
           <a href={CTA_HREF} className="btn-cta fi">
-            今すぐ申し込む →
+            今すぐ無料で試す →
           </a>
           <p className="cta-note">
             補助金業務に携わる行政書士の方へ ／ 持続化補助金 第19回対応
@@ -776,8 +1071,12 @@ export default function LpPage() {
         {/* FOOTER */}
         <footer className="lp-footer">
           <div className="footer-links">
-            <a href="/tokushoho">特定商取引法に基づく表記</a>
-            <a href="/privacy-policy">プライバシーポリシー</a>
+            <a href="/tokushoho">
+              特定商取引法に基づく表記
+            </a>
+            <a href="/privacy-policy">
+              プライバシーポリシー
+            </a>
           </div>
           <p className="footer-copy">
             © 2026 とみながFP事務所　富永淳一　All Rights Reserved.

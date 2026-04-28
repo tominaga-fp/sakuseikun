@@ -56,7 +56,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
             </Link>
           )}
           <span className="text-sm text-gray-500">
-            {isUnlimited ? "無制限（4/30まで）" : `残り ${displayCount}件`}
+            {isUnlimited ? "無制限" : `残り ${displayCount}件`}
           </span>
           {profile?.role !== "admin" && (
             <button

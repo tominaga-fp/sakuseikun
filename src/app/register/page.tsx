@@ -11,7 +11,6 @@ import Footer from "@/components/Footer";
 function RegisterForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const isMonitor = searchParams.get("ref") === "monitor";
   const isComplete = searchParams.get("status") === "complete";
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -47,7 +46,7 @@ function RegisterForm() {
       // Admin API でユーザー作成（email_confirm: true により確認メール送信なし）
       const { error: registerError } = await registerUser({
         email, password, lastName, firstName, companyName, userType,
-        referralCode, isMonitor,
+        referralCode,
       });
       if (registerError) throw new Error(registerError);
 
@@ -80,15 +79,11 @@ function RegisterForm() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "#f5f2eb" }}>
       <div className="w-full max-w-md">
-        <div style={{ background: "linear-gradient(90deg, #f59e0b, #f97316)", borderRadius: "10px", padding: "16px 20px", marginBottom: "16px", textAlign: "center" }}>
-          <p style={{ color: "#fff", fontWeight: 700, fontSize: "18px", margin: 0 }}>🎉 4月30日まで無料・件数無制限で使い放題！</p>
-        </div>
-
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">
             補助金計画書<span className="text-shu">さくせいくん</span>
           </h1>
-          <p className="text-sm text-shu font-semibold mt-2">第19回限定・2026年4月30日まで有効</p>
+          <p className="text-sm text-gray-500 mt-2">お支払い完了後にアカウントを作成してください</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
@@ -274,9 +269,8 @@ function RegisterForm() {
                 disabled={loading || !isFormValid}
                 className="btn-shu w-full py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "登録中..." : "無料アカウントを作成"}
+                {loading ? "登録中..." : "アカウントを作成"}
               </button>
-              <p className="text-center text-xs text-gray-400 mt-2">登録30秒・クレジットカード不要・すぐに使えます</p>
             </form>
           )}
         </div>
