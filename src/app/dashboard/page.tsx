@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
-import SurveyBanner from "@/components/SurveyBanner";
 import PlanBuilder from "./PlanBuilder";
 
 export default async function DashboardPage() {
@@ -43,8 +42,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen">
       <Header profile={profile} />
-      <SurveyBanner />
-      <main className="mx-auto px-4 py-4" style={{ maxWidth: "1400px" }}>
+<main className="mx-auto px-4 py-4" style={{ maxWidth: "1400px" }}>
         <PlanBuilder profile={profile} existingPlans={plans ?? []} />
       </main>
     </div>
