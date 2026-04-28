@@ -34,8 +34,10 @@ export async function updateSession(request: NextRequest) {
     pathname === "/" ||
     pathname === "/login" ||
     pathname === "/register" ||
+    pathname === "/pricing" ||
     pathname === "/forgot-password" ||
     pathname === "/lp" ||
+    pathname === "/lp-v1" ||
     pathname === "/tokushoho" ||
     pathname === "/privacy-policy" ||
     pathname === "/terms" ||
@@ -51,7 +53,7 @@ export async function updateSession(request: NextRequest) {
 
   // ログイン済みでも /login はそのまま表示（毎回ID/PW入力させる）
   // / と /register と /forgot-password のみリダイレクト
-  if (user && isPublicPage && pathname !== "/login" && pathname !== "/lp") {
+  if (user && isPublicPage && pathname !== "/login" && pathname !== "/lp" && pathname !== "/lp-v1" && pathname !== "/pricing") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
