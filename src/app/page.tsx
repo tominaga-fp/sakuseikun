@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-const CTA_HREF = "/pricing";
+const CTA_HREF = "#pricing";
+const MONTHLY_URL = "https://buy.stripe.com/4gM7sL0BL5c61xz0tQdQQ05";
+const YEARLY_URL = "https://buy.stripe.com/00wcN53NX9smdghb8udQQ04";
 
 export default function LpPage() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -279,17 +281,20 @@ export default function LpPage() {
                   <div className="plan-limit">年間30件まで・月換算¥14,900</div>
                 </div>
                 <a
-                  href={CTA_HREF}
+                  href={MONTHLY_URL}
                   className="cta-btn"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    textDecoration: "none",
-                  }}
+                  style={{ display: "block", textAlign: "center", textDecoration: "none", marginBottom: "10px" }}
                 >
-                  今すぐ申し込む →
+                  月払いで申し込む（¥29,800/月）
                 </a>
-                <p className="form-note">
+                <a
+                  href={YEARLY_URL}
+                  className="cta-btn"
+                  style={{ display: "block", textAlign: "center", textDecoration: "none", background: "#b8860b" }}
+                >
+                  年払いで申し込む（¥178,800/年）
+                </a>
+                <p className="form-note" style={{ marginTop: "10px" }}>
                   ご不明な点はお気軽にお問い合わせください。
                 </p>
               </div>
@@ -668,7 +673,7 @@ export default function LpPage() {
                   <li>ヒアリングシート（ご契約特典）</li>
                   <li>過去の会話履歴はすべて保存</li>
                 </ul>
-                <a href={CTA_HREF} className="pricing-cta">月額プランで申し込む</a>
+                <a href={MONTHLY_URL} className="pricing-cta">月払いで申し込む</a>
               </div>
               {/* Annual */}
               <div className="pricing-card recommended">
@@ -684,7 +689,7 @@ export default function LpPage() {
                   <li>ヒアリングシート（ご契約特典）</li>
                   <li>過去の会話履歴はすべて保存</li>
                 </ul>
-                <a href={CTA_HREF} className="pricing-cta">年額プランで申し込む</a>
+                <a href={YEARLY_URL} className="pricing-cta">年払いで申し込む</a>
               </div>
             </div>
             <div className="pricing-note fi">
