@@ -633,8 +633,7 @@ html{scroll-behavior:smooth;}
               }}
             >
               <div style={{ fontSize: "17px", color: "var(--ink-mid)", lineHeight: 2.1, marginBottom: "32px" }}>
-                <p style={{ margin: '0 0 1em' }}>中小企業のFPとして財務・経営改善に携わり、<br />補助金を6年研究してきた知見をAIに組み込んだWebツールです。</p>
-                <p style={{ margin: 0 }}>エンジニアでもない私が、現場感覚を損なわずに作り上げました。</p>
+                <p style={{ margin: 0 }}>補助金専門のFP事務所が開発・運営しています。中小企業の資金調達支援に6年携わった現場知識を、AIに組み込みました。</p>
               </div>
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", fontSize: "15px", color: "var(--ink-light)" }}>
                 とみながFP事務所　富永淳一
