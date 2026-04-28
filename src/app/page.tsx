@@ -56,6 +56,7 @@ export default function LpPage() {
   --green-bg: #f0fdf4;
   --red-bg: #7a1a1a;
 }
+html{scroll-behavior:smooth;}
 .lp-root *{margin:0;padding:0;box-sizing:border-box;}
 .lp-root{font-family:'Noto Sans JP',sans-serif;background:var(--white);color:var(--ink);overflow-x:hidden;line-height:1.8;-webkit-font-smoothing:antialiased;font-size:18px;}
 
@@ -281,18 +282,11 @@ export default function LpPage() {
                   <div className="plan-limit">年間30件まで・月換算¥14,900</div>
                 </div>
                 <a
-                  href={MONTHLY_URL}
+                  href={CTA_HREF}
                   className="cta-btn"
-                  style={{ display: "block", textAlign: "center", textDecoration: "none", marginBottom: "10px" }}
+                  style={{ display: "block", textAlign: "center", textDecoration: "none" }}
                 >
-                  月払いで申し込む（¥29,800/月）
-                </a>
-                <a
-                  href={YEARLY_URL}
-                  className="cta-btn"
-                  style={{ display: "block", textAlign: "center", textDecoration: "none", background: "#b8860b" }}
-                >
-                  年払いで申し込む（¥178,800/年）
+                  今すぐ申し込む →
                 </a>
                 <p className="form-note" style={{ marginTop: "10px" }}>
                   ご不明な点はお気軽にお問い合わせください。
