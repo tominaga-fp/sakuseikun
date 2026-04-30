@@ -184,6 +184,9 @@ remaining = monthly_limit - monthly_count + extra_count
 - 本番DBの直接操作（SELECT以外）
 - rm -rf / force push
 - 金額・プラン名の勝手な変更
+- **Agent ツール呼び出し時に `isolation: "worktree"` を指定しない**
+  （worktreeが乱立し、メインへのマージ漏れが発生する原因になるため。
+  　常にメインフォルダで直接作業すること）
 
 ## 変更記録ルール（★重要★）
 
