@@ -43,10 +43,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // 無料プランはサーバー側でブロック（5/1有料化移行後）
+  const planType = profile.plan_type ?? "free";
+  if (planType === "free" && !isAdmin && !profile.is_monitor) {
+    return NextResponse.json(
+      { error: "有料プランへのご登録が必要です" },
+      { status: 403 }
+    );
+  }
+
   // カウントリセット判定（継続サブスクプランのみ）
   const now = new Date();
   const resetAt = new Date(profile.period_reset_at);
-  const planType = profile.plan_type ?? "free";
   const isSubscriptionPlan = planType !== "free" && planType !== "basic";
 
   if (now >= resetAt && isSubscriptionPlan) {
