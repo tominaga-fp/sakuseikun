@@ -43,14 +43,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // 月次カウントリセット判定（継続サブスクプランのみ）
+  // カウントリセット判定（継続サブスクプランのみ）
   const now = new Date();
   const resetAt = new Date(profile.count_reset_at);
   const planType = profile.plan_type ?? "free";
   const isSubscriptionPlan = planType !== "free" && planType !== "basic";
 
   if (now >= resetAt && isSubscriptionPlan) {
-    const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    // annual_50: 年次リセット（reset_at の1年後）、それ以外: 翌月1日
+    const nextReset = planType === "annual_50"
+      ? new Date(resetAt.getFullYear() + 1, resetAt.getMonth(), resetAt.getDate())
+      : new Date(now.getFullYear(), now.getMonth() + 1, 1);
     await supabase
       .from("profiles")
       .update({ monthly_count: 0, count_reset_at: nextReset.toISOString() })
