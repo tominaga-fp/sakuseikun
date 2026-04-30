@@ -43,9 +43,11 @@ export async function POST(request: Request) {
     );
   }
 
-  // 無料プランはサーバー側でブロック（5/1有料化移行後）
+  // 有料プランのホワイトリスト（5/1有料化移行後）
+  // ここにないplan_typeは全てブロック
   const planType = profile.plan_type ?? "free";
-  if (planType === "free" && !isAdmin && !profile.is_monitor) {
+  const ALLOWED_PLANS = ["annual_50", "monthly_3", "monthly_1", "yearly"];
+  if (!isAdmin && !profile.is_monitor && !ALLOWED_PLANS.includes(planType)) {
     return NextResponse.json(
       { error: "有料プランへのご登録が必要です" },
       { status: 403 }
