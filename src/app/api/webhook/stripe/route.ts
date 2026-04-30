@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
           stripe_subscription_id: subscriptionId,
           subscription_status: "active",
           plan_type: planType,
-          monthly_limit: monthlyLimit,
+          usage_limit: monthlyLimit,
           is_active: true,
         }).eq("id", existingProfile.id);
         console.log("[stripe webhook] 既存ユーザー更新:", email);
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           plan_type: planType,
-          monthly_limit: monthlyLimit,
+          usage_limit: monthlyLimit,
           created_at: new Date().toISOString(),
         }, { onConflict: "email" });
         console.log("[stripe webhook] pending_subscriptions に保存:", email);

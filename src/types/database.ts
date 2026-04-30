@@ -9,11 +9,11 @@ export interface Profile {
   role: "user" | "admin" | "agent";
   is_active: boolean;
   is_monitor: boolean;
-  monthly_count: number;
-  monthly_limit: number;
+  usage_count: number;
+  usage_limit: number;
   extra_count: number;
-  plan_type: "free" | "monthly_1" | "monthly_3" | "yearly";
-  count_reset_at: string;
+  plan_type: "free" | "monthly_1" | "monthly_3" | "yearly" | "annual_50";
+  period_reset_at: string;
   referral_code: string | null;
   agent_code: string | null;
   referred_by: string | null;

@@ -406,7 +406,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const isCampaignExpired = isFree && new Date() >= new Date("2026-05-01T00:00:00+09:00");
   const [showCampaignExpiredModal, setShowCampaignExpiredModal] = useState(false);
   const [remainingCount, setRemainingCount] = useState(
-    isUnlimited ? Infinity : Math.max(0, (profile?.monthly_limit ?? 1) - (profile?.monthly_count ?? 0) + (profile?.extra_count ?? 0))
+    isUnlimited ? Infinity : Math.max(0, (profile?.usage_limit ?? 1) - (profile?.usage_count ?? 0) + (profile?.extra_count ?? 0))
   );
   const [showCountModal, setShowCountModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<false | "copy" | "newSession">(false);

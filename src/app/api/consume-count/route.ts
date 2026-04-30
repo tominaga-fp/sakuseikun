@@ -19,7 +19,7 @@ export async function POST() {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, monthly_count, monthly_limit, extra_count, is_monitor")
+      .select("role, usage_count, usage_limit, extra_count, is_monitor")
       .eq("id", user.id)
       .single();
 
@@ -35,8 +35,8 @@ export async function POST() {
       return NextResponse.json({ consumed: false, ok: true });
     }
 
-    // 残り件数 = monthly_limit - monthly_count + extra_count
-    const remaining = (profile.monthly_limit ?? 1) - (profile.monthly_count ?? 0) + (profile.extra_count ?? 0);
+    // 残り件数 = usage_limit - usage_count + extra_count
+    const remaining = (profile.usage_limit ?? 1) - (profile.usage_count ?? 0) + (profile.extra_count ?? 0);
 
     if (remaining <= 0) {
       return NextResponse.json(
@@ -45,12 +45,12 @@ export async function POST() {
       );
     }
 
-    // extra_count > 0 ならextra_countから消費、そうでなければmonthly_countを+1
+    // extra_count > 0 ならextra_countから消費、そうでなければusage_countを+1
     const extraCount = profile.extra_count ?? 0;
-    const monthlyCount = profile.monthly_count ?? 0;
+    const monthlyCount = profile.usage_count ?? 0;
     const updateData = extraCount > 0
       ? { extra_count: extraCount - 1 }
-      : { monthly_count: monthlyCount + 1 };
+      : { usage_count: monthlyCount + 1 };
 
     const { error: updateError } = await supabase
       .from("profiles")

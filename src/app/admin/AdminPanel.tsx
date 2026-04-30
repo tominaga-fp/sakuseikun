@@ -141,8 +141,8 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   const exportCSV = () => {
     const headers = [
       "id", "email", "last_name", "first_name", "company_name", "user_type",
-      "role", "is_active", "is_monitor", "monthly_count", "monthly_limit",
-      "extra_count", "plan_type", "count_reset_at", "referral_code", "agent_code", "referred_by",
+      "role", "is_active", "is_monitor", "usage_count", "usage_limit",
+      "extra_count", "plan_type", "period_reset_at", "referral_code", "agent_code", "referred_by",
       "created_at", "updated_at",
     ];
     const escape = (v: unknown) => {
@@ -304,7 +304,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
               {filteredUserList.map((u) => {
                 const remaining = u.is_monitor
                   ? "無制限"
-                  : `${Math.max(0, (u.monthly_limit ?? 1) - (u.monthly_count ?? 0) + (u.extra_count ?? 0))}`;
+                  : `${Math.max(0, (u.usage_limit ?? 1) - (u.usage_count ?? 0) + (u.extra_count ?? 0))}`;
                 return (
                   <tr key={u.id} className="border-b border-gray-100">
                     <td className="py-3 px-2">{u.email}</td>

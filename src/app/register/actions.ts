@@ -114,7 +114,7 @@ export async function registerUser(data: {
         stripe_customer_id: pending.stripe_customer_id,
         stripe_subscription_id: pending.stripe_subscription_id,
         plan_type: pending.plan_type,
-        monthly_limit: pending.monthly_limit,
+        usage_limit: pending.usage_limit,
         subscription_status: "active",
       },
     });

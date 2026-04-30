@@ -13,7 +13,7 @@ export default function Header({ profile }: { profile: Profile | null }) {
 
   const isMonitor = profile?.is_monitor ?? false;
   const isUnlimited = profile?.role === "admin" || isMonitor;
-  const initialCount = isUnlimited ? Infinity : Math.max(0, (profile?.monthly_limit ?? 1) - (profile?.monthly_count ?? 0) + (profile?.extra_count ?? 0));
+  const initialCount = isUnlimited ? Infinity : Math.max(0, (profile?.usage_limit ?? 1) - (profile?.usage_count ?? 0) + (profile?.extra_count ?? 0));
   const [displayCount, setDisplayCount] = useState(initialCount);
 
   // Listen for count updates from PlanBuilder

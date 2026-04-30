@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   // カウントリセット判定（継続サブスクプランのみ）
   const now = new Date();
-  const resetAt = new Date(profile.count_reset_at);
+  const resetAt = new Date(profile.period_reset_at);
   const planType = profile.plan_type ?? "free";
   const isSubscriptionPlan = planType !== "free" && planType !== "basic";
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       : new Date(now.getFullYear(), now.getMonth() + 1, 1);
     await supabase
       .from("profiles")
-      .update({ monthly_count: 0, count_reset_at: nextReset.toISOString() })
+      .update({ usage_count: 0, period_reset_at: nextReset.toISOString() })
       .eq("id", user.id);
   }
 
