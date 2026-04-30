@@ -33,6 +33,8 @@ export default function Header({ profile }: { profile: Profile | null }) {
   };
 
   const isFree = (profile?.plan_type ?? "free") === "free" && profile?.role !== "admin";
+  const ALLOWED_PLANS = ["annual_50", "monthly_3", "monthly_1", "yearly"];
+  const isBlockedUser = !isUnlimited && !ALLOWED_PLANS.includes(profile?.plan_type ?? "free");
   const extraPurchaseUrl = `https://www.firstpay.jp/new/eyJwYXltZW50VHlwZSI6IkVBQ0hUSU1FIiwicGF5dGltZXMiOjEsInJlbWFya3MiOiIiLCJwcm9kdWN0cyI6W3siaWQiOjE4MDEzLCJhbW91bnQiOjF9XX0=?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/extra?user_id=${profile?.id ?? ""}`)}`;
 
   return (
@@ -61,6 +63,10 @@ export default function Header({ profile }: { profile: Profile | null }) {
           {profile?.role !== "admin" && (
             <button
               onClick={() => {
+                if (isBlockedUser) {
+                  window.dispatchEvent(new CustomEvent("show-plan-required-modal"));
+                  return;
+                }
                 if (!isFree) window.open(extraPurchaseUrl, "_blank");
               }}
               disabled={isFree}

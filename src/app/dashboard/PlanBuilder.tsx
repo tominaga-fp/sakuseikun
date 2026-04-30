@@ -403,7 +403,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const isMonitor = isCampaignActive ? true : !!profile?.is_monitor;
   const isUnlimited = isAdmin || isMonitor;
   const isFree = (profile?.plan_type ?? "free") === "free" && !isUnlimited;
-  const isCampaignExpired = isFree && new Date() >= new Date("2026-05-01T00:00:00+09:00");
+  // 許可プラン以外は全てブロック（free/basic/旧プラン含む）
+  const ALLOWED_PLANS = ["annual_50", "monthly_3", "monthly_1", "yearly"];
+  const isCampaignExpired = !isUnlimited && !ALLOWED_PLANS.includes(profile?.plan_type ?? "free");
   const [showCampaignExpiredModal, setShowCampaignExpiredModal] = useState(false);
   const [remainingCount, setRemainingCount] = useState(
     isUnlimited ? Infinity : Math.max(0, (profile?.usage_limit ?? 1) - (profile?.usage_count ?? 0) + (profile?.extra_count ?? 0))
@@ -809,6 +811,13 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const scorePercent = Math.round((totalScore / 75) * 100);
 
   const paymentUrl = `https://bit.ly/4bidK2W?redirect_url=${encodeURIComponent(`https://sakuseikun-nine.vercel.app/payment/complete?user_id=${profile?.id ?? ""}`)}`;
+
+  // ─── Headerの1件追加ボタンからのモーダル表示イベント ───
+  useEffect(() => {
+    const handler = () => setShowCampaignExpiredModal(true);
+    window.addEventListener("show-plan-required-modal", handler);
+    return () => window.removeEventListener("show-plan-required-modal", handler);
+  }, []);
 
   // ─── Free plan copy/keyboard/contextmenu block ───
   useEffect(() => {
@@ -1851,20 +1860,19 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
         );
       })()}
 
-      {/* Campaign expired modal (free users after 2026-05-01) */}
+      {/* 有料プラン登録必要モーダル */}
       {showCampaignExpiredModal && (
         <div
           style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
           onClick={() => setShowCampaignExpiredModal(false)}
         >
           <div style={{ background: COLORS.white, borderRadius: "12px", padding: "28px 32px", maxWidth: "440px", width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>キャンペーン期間が終了しました</div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: COLORS.ink, marginBottom: "12px" }}>有料プランへのご登録が必要です</div>
             <div style={{ fontSize: "13px", color: COLORS.gray600, lineHeight: 1.7, marginBottom: "24px" }}>
-              続けてご利用いただくには有料プランへのご登録が必要です。作成済みのデータは保持されています。
+              さくせいくんをご利用いただくには有料プランへのご登録が必要です。
             </div>
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button onClick={() => setShowCampaignExpiredModal(false)} style={{ padding: "8px 20px", borderRadius: "8px", border: `1px solid ${COLORS.gray300}`, background: COLORS.white, color: COLORS.gray600, fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>閉じる</button>
-              <button onClick={() => { window.open(paymentUrl, "_blank"); setShowCampaignExpiredModal(false); }} style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: COLORS.gold, color: COLORS.white, fontWeight: 700, fontSize: "13px", cursor: "pointer" }}>有料プランを見る</button>
             </div>
           </div>
         </div>
