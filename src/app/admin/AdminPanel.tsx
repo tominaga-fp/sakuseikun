@@ -34,6 +34,10 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   // user_typeフィルター
   const [userTypeFilter, setUserTypeFilter] = useState<"all" | "business" | "consultant">("all");
 
+  // プランフィルター
+  const PAID_PLANS = ["annual_50", "monthly_3", "monthly_1", "yearly"];
+  const [planFilter, setPlanFilter] = useState<"paid" | "all">("paid");
+
   // 紹介コードフィルター
   const [referralFilter, setReferralFilter] = useState("");
 
@@ -164,8 +168,14 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     URL.revokeObjectURL(url);
   };
 
+  const isPaidOrSpecial = (u: Profile) =>
+    PAID_PLANS.includes(u.plan_type) || u.role === "admin" || (u.is_monitor ?? false);
+
   const filteredUserList = useMemo(() => {
     let list = userList;
+    if (planFilter === "paid") {
+      list = list.filter(isPaidOrSpecial);
+    }
     if (userTypeFilter !== "all") {
       list = list.filter((u) => u.user_type === userTypeFilter);
     }
@@ -174,7 +184,8 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
       list = list.filter((u) => u.referral_code?.toLowerCase().includes(q));
     }
     return list;
-  }, [userList, userTypeFilter, referralFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userList, planFilter, userTypeFilter, referralFilter]);
 
   const updateUserRole = async (userId: string, role: string) => {
     setActionLoading(userId);
@@ -258,15 +269,24 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
         <div className="card-washi overflow-x-auto">
           {/* フィルター・エクスポート */}
           <div className="flex items-center gap-3 mb-4 flex-wrap">
-            <label className="text-sm text-gray-500">ユーザー種別：</label>
+            <label className="text-sm text-gray-500">プラン：</label>
+            <select
+              value={planFilter}
+              onChange={(e) => setPlanFilter(e.target.value as "paid" | "all")}
+              className="text-sm border rounded px-2 py-1 font-medium"
+            >
+              <option value="paid">有料・管理者（{userList.filter(isPaidOrSpecial).length}）</option>
+              <option value="all">すべて（{userList.length}）</option>
+            </select>
+            <label className="text-sm text-gray-500">種別：</label>
             <select
               value={userTypeFilter}
               onChange={(e) => setUserTypeFilter(e.target.value as "all" | "business" | "consultant")}
               className="text-sm border rounded px-2 py-1"
             >
-              <option value="all">すべて（{userList.length}）</option>
-              <option value="business">事業者（{userList.filter((u) => u.user_type === "business").length}）</option>
-              <option value="consultant">コンサルタント（{userList.filter((u) => u.user_type === "consultant").length}）</option>
+              <option value="all">すべて</option>
+              <option value="business">事業者</option>
+              <option value="consultant">コンサル</option>
             </select>
             <label className="text-sm text-gray-500">紹介コード：</label>
             <input
