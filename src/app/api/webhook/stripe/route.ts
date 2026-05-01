@@ -35,6 +35,40 @@ export async function POST(req: NextRequest) {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      // 1件追加（単発決済）
+      if (session.mode === "payment") {
+        const userId = session.client_reference_id;
+        const email = session.customer_details?.email;
+
+        let targetUserId = userId;
+        if (!targetUserId && email) {
+          const { data: profile } = await adminClient
+            .from("profiles")
+            .select("id")
+            .eq("email", email)
+            .single();
+          targetUserId = profile?.id ?? null;
+        }
+
+        if (!targetUserId) {
+          console.error("[stripe webhook] extra purchase: user not found", { userId, email });
+          return NextResponse.json({ received: true });
+        }
+
+        await adminClient.rpc("increment_extra_count", { user_id_input: targetUserId });
+        await adminClient.from("sales").insert({
+          user_id: targetUserId,
+          amount: 9800,
+          plan_type: "extra",
+          payment_date: new Date().toISOString(),
+          webhook_data: session,
+        });
+        console.log("[stripe webhook] 1件追加完了:", targetUserId);
+        return NextResponse.json({ received: true });
+      }
+
+      // サブスクリプション決済
       const email = session.customer_details?.email ?? session.customer_email;
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
