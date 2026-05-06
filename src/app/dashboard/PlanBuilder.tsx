@@ -47,6 +47,7 @@ interface ChatSessionItem {
   id: string;
   title: string | null;
   created_at: string;
+  is_pinned: boolean;
 }
 
 interface PlanBuilderProps {
@@ -416,6 +417,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [savingSessionId, setSavingSessionId] = useState<string | null>(null);
+  const [menuSessionId, setMenuSessionId] = useState<string | null>(null);
   const pendingMessageRef = useRef<string | null>(null);
 
   // ─── Derived data ───
@@ -437,8 +439,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     if (!profile?.id) return;
     const { data } = await supabase
       .from("chat_sessions")
-      .select("id, title, created_at")
+      .select("id, title, created_at, is_pinned")
       .eq("user_id", profile.id)
+      .order("is_pinned", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(50);
     if (data) setSessionList(data as ChatSessionItem[]);
@@ -481,6 +484,18 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     setSavingSessionId(null);
   };
 
+  const handlePinSession = async (sessionId: string, currentPinned: boolean) => {
+    const next = !currentPinned;
+    setSessionList(prev => {
+      const updated = prev.map(s => s.id === sessionId ? { ...s, is_pinned: next } : s);
+      return [...updated].sort((a, b) => {
+        if (a.is_pinned === b.is_pinned) return 0;
+        return a.is_pinned ? -1 : 1;
+      });
+    });
+    await supabase.from("chat_sessions").update({ is_pinned: next }).eq("id", sessionId);
+  };
+
   // ─── Session persistence ───
   const saveSession = useCallback(async (msgs: ChatMessage[]) => {
     if (!profile?.id || msgs.length === 0) return;
@@ -520,6 +535,14 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
       debouncedSave(messages);
     }
   }, [messages, sessionLoaded, debouncedSave]);
+
+  // メニューの外クリックで閉じる
+  useEffect(() => {
+    if (!menuSessionId) return;
+    const close = () => setMenuSessionId(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuSessionId]);
 
   // ─── Scroll ───
   const scrollToBottom = useCallback(() => {
@@ -949,90 +972,156 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               const isActive = sessionIdRef.current === s.id;
               const isEditing = editingSessionId === s.id;
               const isSaving = savingSessionId === s.id;
+              const isMenuOpen = menuSessionId === s.id;
               const dateStr = new Date(s.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
               const label = (s.title || "新しい会話").slice(0, 20);
               return (
                 <div
                   key={s.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "4px 6px",
-                    borderRadius: "6px",
-                    background: isActive ? `${COLORS.accent}12` : "transparent",
-                    cursor: isEditing ? "default" : "pointer",
-                    transition: "background 0.15s",
-                  }}
-                  onClick={() => { if (!isEditing) handleSwitchSession(s.id); }}
-                  onMouseEnter={(e) => { if (!isActive && !isEditing) (e.currentTarget as HTMLDivElement).style.background = COLORS.gray100; }}
-                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = isActive ? `${COLORS.accent}12` : "transparent"; }}
+                  style={{ position: "relative" }}
                 >
-                  {isEditing ? (
-                    <input
-                      autoFocus
-                      disabled={isSaving}
-                      defaultValue={s.title || "新しい会話"}
-                      onChange={(e) => setEditingTitle(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"));
-                        if (e.key === "Escape") setEditingSessionId(null);
-                      }}
-                      onBlur={() => handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"))}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        flex: 1,
-                        fontSize: "11px",
-                        border: `1px solid ${COLORS.accent}`,
-                        borderRadius: "3px",
-                        padding: "1px 4px",
-                        outline: "none",
-                        background: "white",
-                        color: COLORS.gray600,
-                        opacity: isSaving ? 0.5 : 1,
-                      }}
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        flex: 1,
-                        fontSize: "11px",
-                        color: isActive ? COLORS.accent : COLORS.gray600,
-                        fontWeight: isActive ? 700 : 400,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      onDoubleClick={(e) => {
-                        e.stopPropagation();
-                        setEditingTitle(s.title || "新しい会話");
-                        setEditingSessionId(s.id);
-                      }}
-                    >
-                      <span style={{ color: COLORS.gray400, marginRight: "4px" }}>{dateStr}</span>
-                      {label}
-                    </span>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteSession(s.id);
-                    }}
+                  <div
                     style={{
-                      border: "none",
-                      background: "none",
-                      color: COLORS.gray400,
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      padding: "0 2px",
-                      lineHeight: 1,
-                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "4px 6px",
+                      borderRadius: "6px",
+                      background: isActive ? `${COLORS.accent}12` : "transparent",
+                      cursor: isEditing ? "default" : "pointer",
+                      transition: "background 0.15s",
                     }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.red600; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.gray400; }}
+                    onClick={() => { if (!isEditing && !isMenuOpen) handleSwitchSession(s.id); }}
+                    onMouseEnter={(e) => { if (!isActive && !isEditing) (e.currentTarget as HTMLDivElement).style.background = COLORS.gray100; }}
+                    onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                   >
-                    ×
-                  </button>
+                    {s.is_pinned && (
+                      <span style={{ fontSize: "9px", color: COLORS.gold, flexShrink: 0 }}>📌</span>
+                    )}
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        disabled={isSaving}
+                        defaultValue={s.title || "新しい会話"}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"));
+                          if (e.key === "Escape") setEditingSessionId(null);
+                        }}
+                        onBlur={() => handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"))}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          flex: 1,
+                          fontSize: "11px",
+                          border: `1px solid ${COLORS.accent}`,
+                          borderRadius: "3px",
+                          padding: "1px 4px",
+                          outline: "none",
+                          background: "white",
+                          color: COLORS.gray600,
+                          opacity: isSaving ? 0.5 : 1,
+                        }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          flex: 1,
+                          fontSize: "11px",
+                          color: isActive ? COLORS.accent : COLORS.gray600,
+                          fontWeight: isActive ? 700 : 400,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ color: COLORS.gray400, marginRight: "4px" }}>{dateStr}</span>
+                        {label}
+                      </span>
+                    )}
+                    {!isEditing && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuSessionId(isMenuOpen ? null : s.id);
+                        }}
+                        style={{
+                          border: "none",
+                          background: "none",
+                          color: COLORS.gray400,
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          padding: "0 2px",
+                          lineHeight: 1,
+                          flexShrink: 0,
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.gray600; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = COLORS.gray400; }}
+                      >
+                        ⋯
+                      </button>
+                    )}
+                  </div>
+                  {isMenuOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: "100%",
+                        zIndex: 100,
+                        background: "white",
+                        border: `1px solid ${COLORS.gray200}`,
+                        borderRadius: "6px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+                        minWidth: "120px",
+                        overflow: "hidden",
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {[
+                        {
+                          label: s.is_pinned ? "ピン解除" : "ピン止め",
+                          icon: "📌",
+                          action: () => { handlePinSession(s.id, s.is_pinned); setMenuSessionId(null); },
+                          color: COLORS.gray700,
+                        },
+                        {
+                          label: "名前の変更",
+                          icon: "✏️",
+                          action: () => { setEditingTitle(s.title || "新しい会話"); setEditingSessionId(s.id); setMenuSessionId(null); },
+                          color: COLORS.gray700,
+                        },
+                        {
+                          label: "削除",
+                          icon: "🗑️",
+                          action: () => { handleDeleteSession(s.id); setMenuSessionId(null); },
+                          color: COLORS.red600,
+                        },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={item.action}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            width: "100%",
+                            padding: "7px 12px",
+                            border: "none",
+                            background: "none",
+                            fontSize: "12px",
+                            color: item.color,
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = COLORS.gray100; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
+                        >
+                          <span>{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
