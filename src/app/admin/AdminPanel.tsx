@@ -20,7 +20,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ users, agents, rewards, sales }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<"users" | "agents" | "rewards" | "sales">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "agents" | "rewards" | "sales" | "notifications">("users");
   const [userList, setUserList] = useState(users);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -234,11 +234,63 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     return sales.reduce((sum, s) => sum + (s.amount ?? 0), 0);
   }, [sales]);
 
+  // 通知
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifBody, setNotifBody] = useState("");
+  const [notifTargetEmail, setNotifTargetEmail] = useState("");
+  const [notifSending, setNotifSending] = useState(false);
+  const [notifMessage, setNotifMessage] = useState("");
+  const [notifList, setNotifList] = useState<{ id: string; title: string; body: string; created_at: string; target_user?: { email: string } | null }[]>([]);
+  const [notifLoaded, setNotifLoaded] = useState(false);
+
+  const loadNotifications = async () => {
+    const res = await fetch("/api/admin/notifications");
+    const data = await res.json();
+    setNotifList(data);
+    setNotifLoaded(true);
+  };
+
+  const sendNotification = async () => {
+    if (!notifTitle.trim() || !notifBody.trim()) return;
+    setNotifSending(true);
+    setNotifMessage("");
+    let target_user_id: string | null = null;
+    if (notifTargetEmail.trim()) {
+      const found = userList.find(u => u.email === notifTargetEmail.trim());
+      if (!found) { setNotifMessage("該当ユーザーが見つかりません"); setNotifSending(false); return; }
+      target_user_id = found.id;
+    }
+    const res = await fetch("/api/admin/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: notifTitle, body: notifBody, target_user_id }),
+    });
+    if (res.ok) {
+      setNotifMessage("送信しました");
+      setNotifTitle(""); setNotifBody(""); setNotifTargetEmail("");
+      loadNotifications();
+    } else {
+      const d = await res.json();
+      setNotifMessage(d.error ?? "エラーが発生しました");
+    }
+    setNotifSending(false);
+  };
+
+  const deleteNotification = async (id: string) => {
+    await fetch("/api/admin/notifications", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setNotifList(prev => prev.filter(n => n.id !== id));
+  };
+
   const tabs = [
     { key: "users" as const, label: `ユーザー管理（${userList.length}）` },
     { key: "sales" as const, label: `売上管理（${sales.length}）` },
     { key: "agents" as const, label: `代理店（${agents.length}）` },
     { key: "rewards" as const, label: "報酬管理" },
+    { key: "notifications" as const, label: "お知らせ" },
   ];
 
   return (
@@ -247,7 +299,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => { setActiveTab(tab.key); if (tab.key === "notifications" && !notifLoaded) loadNotifications(); }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               activeTab === tab.key
                 ? "bg-shu text-white"
@@ -632,6 +684,99 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
                 {editSaving ? "保存中..." : "保存"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "notifications" && (
+        <div className="space-y-6">
+          {/* 作成フォーム */}
+          <div className="card-washi p-6">
+            <h2 className="text-lg font-bold mb-4">お知らせ作成</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
+                <input
+                  value={notifTitle}
+                  onChange={e => setNotifTitle(e.target.value)}
+                  placeholder="例：新機能追加のお知らせ"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">本文</label>
+                <textarea
+                  value={notifBody}
+                  onChange={e => setNotifBody(e.target.value)}
+                  rows={4}
+                  placeholder="お知らせの内容を入力してください"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  送信先（空欄＝全ユーザー）
+                </label>
+                <input
+                  value={notifTargetEmail}
+                  onChange={e => setNotifTargetEmail(e.target.value)}
+                  placeholder="個別送信する場合はメールアドレスを入力"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              {notifMessage && (
+                <p className={`text-sm ${notifMessage === "送信しました" ? "text-green-600" : "text-red-600"}`}>
+                  {notifMessage}
+                </p>
+              )}
+              <button
+                onClick={sendNotification}
+                disabled={notifSending || !notifTitle.trim() || !notifBody.trim()}
+                className="px-6 py-2 bg-shu text-white rounded-lg text-sm font-medium hover:bg-shu-dark disabled:opacity-50"
+              >
+                {notifSending ? "送信中..." : "送信する"}
+              </button>
+            </div>
+          </div>
+
+          {/* 送信済み一覧 */}
+          <div className="card-washi overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-left text-gray-500 text-xs">
+                  <th className="py-3 px-4">日時</th>
+                  <th className="py-3 px-4">タイトル</th>
+                  <th className="py-3 px-4">本文</th>
+                  <th className="py-3 px-4">送信先</th>
+                  <th className="py-3 px-4"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifList.length === 0 && (
+                  <tr><td colSpan={5} className="py-8 text-center text-gray-400">まだお知らせはありません</td></tr>
+                )}
+                {notifList.map(n => (
+                  <tr key={n.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
+                      {new Date(n.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                    <td className="py-3 px-4 font-medium text-gray-800">{n.title}</td>
+                    <td className="py-3 px-4 text-gray-600 max-w-xs truncate">{n.body}</td>
+                    <td className="py-3 px-4 text-gray-500">
+                      {n.target_user?.email ?? <span className="text-blue-600 font-medium">全員</span>}
+                    </td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => deleteNotification(n.id)}
+                        className="text-red-500 hover:text-red-700 text-xs"
+                      >
+                        削除
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
