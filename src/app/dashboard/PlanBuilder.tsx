@@ -413,6 +413,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const [showCountModal, setShowCountModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<false | "copy" | "newSession">(false);
   const [sessionList, setSessionList] = useState<ChatSessionItem[]>([]);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [savingSessionId, setSavingSessionId] = useState<string | null>(null);
   const pendingMessageRef = useRef<string | null>(null);
 
   // ─── Derived data ───
@@ -469,6 +472,15 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     fetchSessions();
   };
 
+  const handleRenameSession = async (sessionId: string, newTitle: string) => {
+    const trimmed = newTitle.trim() || "新しい会話";
+    setSavingSessionId(sessionId);
+    setSessionList(prev => prev.map(s => s.id === sessionId ? { ...s, title: trimmed } : s));
+    setEditingSessionId(null);
+    await supabase.from("chat_sessions").update({ title: trimmed }).eq("id", sessionId);
+    setSavingSessionId(null);
+  };
+
   // ─── Session persistence ───
   const saveSession = useCallback(async (msgs: ChatMessage[]) => {
     if (!profile?.id || msgs.length === 0) return;
@@ -519,10 +531,11 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   // ─── API (with continuation support) ───
   const sendToAPIWithAppend = async (msgs: ChatMessage[], appendToLast = false): Promise<string> => {
+    const totalTurnCount = msgs.filter(m => m.role === 'user').length;
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: msgs.slice(-10) }),
+      body: JSON.stringify({ messages: msgs.slice(-20), turnCount: totalTurnCount }),
     });
 
     if (!res.ok) {
@@ -692,12 +705,18 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   const doSendMessage = async (text: string) => {
     // チャット上限チェック
     const userMessageCount = messages.filter(m => m.role === 'user').length;
-    if (userMessageCount >= 30) {
+    if (userMessageCount >= 40) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: '会話が長くなっています。計画書のドラフトを作成するか、新しい会話を始めてください。'
+        content: 'この会話は上限（40往復）に達しました。新しい会話を開始してください。'
       }]);
       return;
+    }
+    if (userMessageCount === 35) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '⚠️ この会話はあと5往復で終了します。計画書の仕上げを進めるか、新しい会話を始めてください。'
+      }]);
     }
 
     const userMessage: ChatMessage = { role: "user", content: text };
@@ -927,6 +946,8 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
           >
             {sessionList.map((s) => {
               const isActive = sessionIdRef.current === s.id;
+              const isEditing = editingSessionId === s.id;
+              const isSaving = savingSessionId === s.id;
               const dateStr = new Date(s.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric" });
               const label = (s.title || "新しい会話").slice(0, 20);
               return (
@@ -939,27 +960,58 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                     padding: "4px 6px",
                     borderRadius: "6px",
                     background: isActive ? `${COLORS.accent}12` : "transparent",
-                    cursor: "pointer",
+                    cursor: isEditing ? "default" : "pointer",
                     transition: "background 0.15s",
                   }}
-                  onClick={() => handleSwitchSession(s.id)}
-                  onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = COLORS.gray100; }}
-                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+                  onClick={() => { if (!isEditing) handleSwitchSession(s.id); }}
+                  onMouseEnter={(e) => { if (!isActive && !isEditing) (e.currentTarget as HTMLDivElement).style.background = COLORS.gray100; }}
+                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = isActive ? `${COLORS.accent}12` : "transparent"; }}
                 >
-                  <span
-                    style={{
-                      flex: 1,
-                      fontSize: "11px",
-                      color: isActive ? COLORS.accent : COLORS.gray600,
-                      fontWeight: isActive ? 700 : 400,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span style={{ color: COLORS.gray400, marginRight: "4px" }}>{dateStr}</span>
-                    {label}
-                  </span>
+                  {isEditing ? (
+                    <input
+                      autoFocus
+                      disabled={isSaving}
+                      defaultValue={s.title || "新しい会話"}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"));
+                        if (e.key === "Escape") setEditingSessionId(null);
+                      }}
+                      onBlur={() => handleRenameSession(s.id, editingTitle || (s.title || "新しい会話"))}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        flex: 1,
+                        fontSize: "11px",
+                        border: `1px solid ${COLORS.accent}`,
+                        borderRadius: "3px",
+                        padding: "1px 4px",
+                        outline: "none",
+                        background: "white",
+                        color: COLORS.gray600,
+                        opacity: isSaving ? 0.5 : 1,
+                      }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: "11px",
+                        color: isActive ? COLORS.accent : COLORS.gray600,
+                        fontWeight: isActive ? 700 : 400,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTitle(s.title || "新しい会話");
+                        setEditingSessionId(s.id);
+                      }}
+                    >
+                      <span style={{ color: COLORS.gray400, marginRight: "4px" }}>{dateStr}</span>
+                      {label}
+                    </span>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
