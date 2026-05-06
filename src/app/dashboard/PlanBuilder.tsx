@@ -492,9 +492,10 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     const title = businessTypeRef.current.trim() || "新しい会話";
 
     if (sessionIdRef.current) {
+      // titleはINSERT時のみ設定。手動リネーム後に上書きしないようUPDATEでは含めない
       await supabase
         .from("chat_sessions")
-        .update({ messages: msgs, title, updated_at: new Date().toISOString() })
+        .update({ messages: msgs, updated_at: new Date().toISOString() })
         .eq("id", sessionIdRef.current);
     } else {
       const { data } = await supabase
