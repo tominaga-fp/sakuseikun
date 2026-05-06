@@ -238,6 +238,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [notifTargetEmail, setNotifTargetEmail] = useState("");
+  const [notifPaidOnly, setNotifPaidOnly] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifMessage, setNotifMessage] = useState("");
   const [notifList, setNotifList] = useState<{ id: string; title: string; body: string; created_at: string; target_user?: { email: string } | null }[]>([]);
@@ -255,7 +256,7 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     setNotifSending(true);
     setNotifMessage("");
     let target_user_id: string | null = null;
-    if (notifTargetEmail.trim()) {
+    if (!notifPaidOnly && notifTargetEmail.trim()) {
       const found = userList.find(u => u.email === notifTargetEmail.trim());
       if (!found) { setNotifMessage("該当ユーザーが見つかりません"); setNotifSending(false); return; }
       target_user_id = found.id;
@@ -263,11 +264,13 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
     const res = await fetch("/api/admin/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: notifTitle, body: notifBody, target_user_id }),
+      body: JSON.stringify({ title: notifTitle, body: notifBody, target_user_id, paid_only: notifPaidOnly }),
     });
     if (res.ok) {
-      setNotifMessage("送信しました");
-      setNotifTitle(""); setNotifBody(""); setNotifTargetEmail("");
+      const d = await res.json();
+      const msg = notifPaidOnly && d.count ? `有料ユーザー${d.count}名に送信しました` : "送信しました";
+      setNotifMessage(msg);
+      setNotifTitle(""); setNotifBody(""); setNotifTargetEmail(""); setNotifPaidOnly(false);
       loadNotifications();
     } else {
       const d = await res.json();
@@ -714,15 +717,26 @@ export default function AdminPanel({ users, agents, rewards, sales }: AdminPanel
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  送信先（空欄＝全ユーザー）
-                </label>
-                <input
-                  value={notifTargetEmail}
-                  onChange={e => setNotifTargetEmail(e.target.value)}
-                  placeholder="個別送信する場合はメールアドレスを入力"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">送信先</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={notifPaidOnly}
+                      onChange={e => { setNotifPaidOnly(e.target.checked); setNotifTargetEmail(""); }}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700 font-medium">有料ユーザーのみ</span>
+                  </label>
+                  {!notifPaidOnly && (
+                    <input
+                      value={notifTargetEmail}
+                      onChange={e => setNotifTargetEmail(e.target.value)}
+                      placeholder="個別送信はメールアドレスを入力（空欄＝全ユーザー）"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    />
+                  )}
+                </div>
               </div>
               {notifMessage && (
                 <p className={`text-sm ${notifMessage === "送信しました" ? "text-green-600" : "text-red-600"}`}>
