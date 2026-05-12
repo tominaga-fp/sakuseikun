@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { PostHogProvider } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -61,7 +62,9 @@ export default function RootLayout({
         />
       </head>
       <body className="washi-bg min-h-screen antialiased">
+        <PostHogProvider>
         {children}
+        </PostHogProvider>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-V5DVEQ2B1M"
           strategy="afterInteractive"
