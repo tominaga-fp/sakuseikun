@@ -705,24 +705,15 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
   };
 
   // ─── Consume count ───
-  const consumeCount = async () => {
+  // 実際の消費はgenerate APIの1ターン目でサーバー側が行う。ここは表示更新のみ。
+  const consumeCount = () => {
     if (isUnlimited || countConsumedRef.current) return;
     countConsumedRef.current = true;
-    try {
-      const res = await fetch("/api/consume-count", {
-        method: "POST",
-        credentials: "same-origin",
-      });
-      if (res.ok) {
-        const newCount = Math.max(0, remainingCount - 1);
-        setRemainingCount(newCount);
-        window.dispatchEvent(
-          new CustomEvent("remaining-count-update", { detail: newCount })
-        );
-      }
-    } catch (e) {
-      console.error("consume-count error:", e);
-    }
+    const newCount = Math.max(0, remainingCount - 1);
+    setRemainingCount(newCount);
+    window.dispatchEvent(
+      new CustomEvent("remaining-count-update", { detail: newCount })
+    );
   };
 
   // ─── Send message (with first-message count confirm) ───
@@ -777,7 +768,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
 
   const handleCountConfirm = async () => {
     setShowCountModal(false);
-    await consumeCount();
+    consumeCount();
     const text = pendingMessageRef.current;
     pendingMessageRef.current = null;
     if (text) {
