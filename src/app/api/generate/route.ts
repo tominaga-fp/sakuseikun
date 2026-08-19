@@ -124,7 +124,8 @@ export async function POST(request: Request) {
             {
               type: "text" as const,
               text: m.content,
-              cache_control: { type: "ephemeral" as const },
+              // 会話履歴も1時間TTL。長い中断で履歴全体が再書き込みになるのを防ぐ
+              cache_control: { type: "ephemeral" as const, ttl: "1h" as const },
             },
           ],
         };
@@ -139,7 +140,10 @@ export async function POST(request: Request) {
         {
           type: "text",
           text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
+          // 1時間TTL: ユーザーがヒアリング内容を入力・貼り付ける間に
+          // 標準の5分TTLだとキャッシュが切れ、毎回プロンプト全体の
+          // 書き込みコストが再発生するため
+          cache_control: { type: "ephemeral", ttl: "1h" },
         },
       ],
       messages: mappedMessages,
