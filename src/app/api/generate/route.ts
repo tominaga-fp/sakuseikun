@@ -5,7 +5,19 @@ import { SYSTEM_PROMPT } from "../../../../prompts/system_prompt";
 
 // Vercel Serverless Function のタイムアウト設定（秒）
 // Hobby: 最大60秒, Pro: 最大300秒
-export const maxDuration = 60;
+//
+// 60秒だと計画書の生成が文の途中で強制終了していた。Sonnet 5は新しい
+// トークナイザーで同じ日本語文章に約30%多くトークンを使うため、生成時間が
+// 伸びて中断がさらに起きやすくなっている。
+//
+// 副次的な問題として、タイムアウトで関数が killed されると
+// ストリーム完了後の usage_logs への記録も実行されない。つまり最も
+// 高コストな長い生成だけが計測から漏れる状態になっていた。
+//
+// ユーザーが「続けて」と入力して再開する運用（質問への回答前に
+// 先へ進む不具合への安全策）はそのまま維持する。ここで直すのは
+// 文の途中でぶつ切りになる問題のみ。
+export const maxDuration = 300;
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
