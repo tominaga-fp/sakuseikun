@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://sakuseikun.jp"),
   title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
-  description: "ヒアリング情報を入力するだけで持続化補助金の様式2準拠の計画書下書きを即座に生成。行政書士事務所のDX・業務効率化を支援するAI特化ツール「さくせいくん」。第20回公募対応済み・モニター期間中は無制限無料でご利用いただけます。",
+  description: "持続化補助金 第20回公募（2026年12月15日締切）対応。ヒアリング情報を入力するだけで、様式2準拠の事業計画書の下書きをAIが自動生成します。行政書士事務所のDX・業務効率化を支援するAI特化ツール「さくせいくん」。",
   keywords: [
     '持続化補助金',
     '計画書作成',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://sakuseikun.jp" },
   openGraph: {
     title: "行政書士のAI活用なら さくせいくん｜持続化補助金の計画書を自動生成",
-    description: "ヒアリング情報を入力するだけで持続化補助金の様式2準拠の計画書下書きを即座に生成。行政書士事務所のDX・業務効率化を支援するAI特化ツール「さくせいくん」。第20回公募対応済み・モニター期間中は無制限無料でご利用いただけます。",
+    description: "持続化補助金 第20回公募（2026年12月15日締切）対応。ヒアリング情報を入力するだけで、様式2準拠の事業計画書の下書きをAIが自動生成します。行政書士事務所のDX・業務効率化を支援するAI特化ツール「さくせいくん」。",
     images: [{ url: "/ogp.png", width: 1200, height: 630 }],
     url: "https://sakuseikun.jp",
   },
