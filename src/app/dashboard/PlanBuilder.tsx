@@ -81,6 +81,8 @@ const HOJO_SECTIONS = [
 const ALL_SECTIONS = [...KEIEI_SECTIONS, ...HOJO_SECTIONS];
 
 // ─── Score criteria (15 items, 5pts each = 75) ───
+// system_prompt.ts の自動セルフチェック表と1対1で対応させること。
+// プロンプト側の項目を増減したら、必ずここも合わせる（第20回で15→17項目に拡張）
 const SCORE_ITEMS = [
   { id: 1, section: "1-2", label: "直近の数値を表で示しているか" },
   { id: 2, section: "1-3", label: "課題を機会損失金額で定量化しているか" },
@@ -94,10 +96,18 @@ const SCORE_ITEMS = [
   { id: 10, section: "補2-2", label: "課題→補助事業→効果の因果関係があるか" },
   { id: 11, section: "補2-3", label: "取組に何を・いつ・誰が・どのようにがあるか" },
   { id: 12, section: "補2-3", label: "デジタル活用が具体的に記載されているか" },
-  { id: 13, section: "補4-1", label: "波及効果を数値で予測しているか" },
-  { id: 14, section: "補4-2", label: "売上・利益を3年分の表で示しているか" },
-  { id: 15, section: "全体", label: "全文断定型で統一されているか" },
+  { id: 13, section: "補4-1", label: "来店数・雇用増・賃上げ金額を数値で明記しているか" },
+  { id: 14, section: "補4-2", label: "売上高・売上総利益・営業利益を3年分の表で示しているか" },
+  { id: 15, section: "補4-2", label: "売上高・売上総利益の増加根拠を客観的データで示しているか" },
+  { id: 16, section: "補2-3", label: "取得資産を事業終了後も継続使用すると明記しているか" },
+  { id: 17, section: "全体", label: "全文断定型で統一されているか" },
 ] as const;
+
+// 満点（SCORE_ITEMS 各項目5点）
+const SCORE_MAX = SCORE_ITEMS.length * 5;
+// 判定しきい値：system_prompt.ts の「目安」と一致させること
+const SCORE_GOOD = Math.round(SCORE_MAX * 0.8); // 68点＝商工会議所に持ち込める初稿
+const SCORE_WARN = Math.round(SCORE_MAX * 0.6); // 51点以下＝情報不足
 
 type ScoreStatus = "pass" | "warn" | "none";
 
@@ -207,7 +217,7 @@ function stripScoringBlocks(text: string): string {
   // 【強化が必要な箇所】 block
   t = t.replace(/(?:\n---\s*)?\n?【強化が必要な箇所】[\s\S]*?(?=\n##|\n【(?!📊)[^\n]*】|$)/g, "");
   // 【📊 市場データ補完ガイド】 is NOT stripped — it remains visible in the chat bubble
-  // 合計: ○点/75点 line
+  // 合計: ○点/85点 line（分母は \d+ で受けるので項目数が変わっても動く）
   t = t.replace(/^.*合計[：:]\s*\d*○?\d*\s*点?\s*[/／]\s*\d+点.*$/gm, "");
   // （目安：...） line
   t = t.replace(/^.*（目安[：:].*$/gm, "");
@@ -266,21 +276,25 @@ function parseSections(text: string): Record<string, string> {
 
 // ─── Score parsing ───
 function parseScores(text: string): ScoreEntry[] {
-  const scores: ScoreEntry[] = Array.from({ length: 15 }, () => ({
+  const scores: ScoreEntry[] = Array.from({ length: SCORE_ITEMS.length }, () => ({
     status: "none" as ScoreStatus,
     score: 0,
     reason: "",
   }));
 
-  const tableRegex = /\|\s*(\d+)\s*\|[^|]*\|[^|]*\|\s*(✅|⚠️|❌|—)\s*\|\s*(\d+)\/5\s*\|\s*(.*?)\s*\|/g;
+  // 得点セルは「5」「5/5」「5 / 5」のいずれの形式でも拾う。
+  // プロンプトのテンプレートが「| /5 |」のためモデルは数字だけを埋めることが多く、
+  // 以前は N/5 形式しか受け付けず全項目0点になっていた。
+  const tableRegex =
+    /\|\s*(\d+)\s*\|[^|]*\|[^|]*\|\s*(✅|⚠️|❌|—)\s*\|\s*(\d+)\s*(?:\/\s*5)?\s*\|\s*(.*?)\s*\|/g;
   let match;
   while ((match = tableRegex.exec(text)) !== null) {
     const idx = parseInt(match[1]) - 1;
-    if (idx >= 0 && idx < 15) {
+    if (idx >= 0 && idx < SCORE_ITEMS.length) {
       const symbol = match[2];
       scores[idx] = {
         status: symbol === "✅" ? "pass" : symbol === "⚠️" ? "warn" : "none",
-        score: parseInt(match[3]),
+        score: Math.min(parseInt(match[3]), 5),
         reason: match[4].trim(),
       };
     }
@@ -842,7 +856,7 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
     navigator.clipboard.writeText(content);
   };
 
-  const scorePercent = Math.round((totalScore / 75) * 100);
+  const scorePercent = Math.round((totalScore / SCORE_MAX) * 100);
 
   const extraUrl = `https://buy.stripe.com/6oU9AT4S19sm7VX0tQdQQ06?client_reference_id=${profile?.id ?? ""}`;
 
@@ -1674,12 +1688,17 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
               fontSize: "36px",
               fontWeight: 800,
               fontFamily: FONT_MONO,
-              color: totalScore >= 60 ? COLORS.green600 : totalScore >= 45 ? COLORS.gold : COLORS.red600,
+              color:
+                totalScore >= SCORE_GOOD
+                  ? COLORS.green600
+                  : totalScore >= SCORE_WARN
+                    ? COLORS.gold
+                    : COLORS.red600,
               lineHeight: 1,
             }}
           >
             {totalScore}
-            <span style={{ fontSize: "16px", fontWeight: 500, color: COLORS.gray400 }}>/75</span>
+            <span style={{ fontSize: "16px", fontWeight: 500, color: COLORS.gray400 }}>/{SCORE_MAX}</span>
           </div>
 
           {/* Progress bar */}
@@ -1698,9 +1717,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
                 width: `${scorePercent}%`,
                 borderRadius: "4px",
                 background:
-                  totalScore >= 60
+                  totalScore >= SCORE_GOOD
                     ? COLORS.green600
-                    : totalScore >= 45
+                    : totalScore >= SCORE_WARN
                       ? COLORS.gold
                       : totalScore > 0
                         ? COLORS.red600
@@ -1710,9 +1729,9 @@ export default function PlanBuilder({ profile, existingPlans }: PlanBuilderProps
             />
           </div>
           <div style={{ fontSize: "11px", color: COLORS.gray400, marginTop: "4px" }}>
-            {totalScore >= 60
+            {totalScore >= SCORE_GOOD
               ? "商工会議所に持ち込める初稿レベル"
-              : totalScore >= 45
+              : totalScore >= SCORE_WARN
                 ? "情報追加で改善可能"
                 : totalScore > 0
                   ? "情報不足 — 追加ヒアリング推奨"
