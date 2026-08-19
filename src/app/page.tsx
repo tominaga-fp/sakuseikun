@@ -316,7 +316,7 @@ html{scroll-behavior:smooth;}
               <div className="stat-label">採点ロジック組み込み済み</div>
             </div>
             <div className="fi">
-              <div className="stat-num">第19回</div>
+              <div className="stat-num">第20回</div>
               <div className="stat-label">最新公募要領に対応</div>
             </div>
           </div>
@@ -331,7 +331,7 @@ html{scroll-behavior:smooth;}
                 <div className="feature-icon">📝</div>
                 <h3>様式2準拠の下書き生成</h3>
                 <p>
-                  経営計画書・補助事業計画書の全項目を出力。第19回公募要領に完全対応しています。
+                  経営計画書・補助事業計画書の全項目を出力。第20回公募要領に完全対応しています。
                 </p>
               </div>
               <div className="feature-card fi">
@@ -454,7 +454,7 @@ html{scroll-behavior:smooth;}
                   fontWeight: 500,
                 }}
               >
-                第19回公募対応
+                第20回公募対応
               </div>
               {/* App body */}
               <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 220px", minHeight: "420px", background: "#fff" }}>
@@ -491,7 +491,7 @@ html{scroll-behavior:smooth;}
                     <div style={{ fontSize: "13px", color: "#6b7280", marginLeft: "16px" }}>📋 項目別</div>
                   </div>
                   <div style={{ background: "#f9fafb", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#374151", lineHeight: 1.75, border: "1px solid #e5e7eb" }}>
-                    こんにちは。持続化補助金（第19回）の事業計画書作成をサポートするAIです。<br /><br />
+                    こんにちは。持続化補助金（第20回）の事業計画書作成をサポートするAIです。<br /><br />
                     ヒアリング情報をもとに、計画書の下書きを一緒に作り上げていきます。
                   </div>
                   <div style={{ background: "#eff6ff", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#1e40af", lineHeight: 1.75, border: "1px solid #bfdbfe" }}>
@@ -769,10 +769,10 @@ html{scroll-behavior:smooth;}
               <div className="faq-item fi">
                 <p className="faq-q">
                   <span className="faq-q-mark">Q</span>
-                  第19回以外にも使えますか？
+                  第20回以外にも使えますか？
                 </p>
                 <p className="faq-a">
-                  現在は第19回に対応した設計です。第20回以降の公募要領が発表され次第、順次対応してまいります。
+                  現在は第20回に対応した設計です。第21回以降の公募要領が発表され次第、順次対応してまいります。
                 </p>
               </div>
               <div className="faq-item fi">
@@ -808,7 +808,7 @@ html{scroll-behavior:smooth;}
             今すぐ申し込む →
           </a>
           <p className="cta-note">
-            補助金業務に携わる行政書士の方へ ／ 持続化補助金 第19回対応
+            補助金業務に携わる行政書士の方へ ／ 持続化補助金 第20回対応
           </p>
         </section>
 

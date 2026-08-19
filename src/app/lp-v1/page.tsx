@@ -318,7 +318,7 @@ export default function LpPage() {
               <div className="stat-label">採点ロジック組み込み済み</div>
             </div>
             <div className="fi">
-              <div className="stat-num">第19回</div>
+              <div className="stat-num">第20回</div>
               <div className="stat-label">最新公募要領に対応</div>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function LpPage() {
                 <div className="feature-icon">📝</div>
                 <h3>様式2準拠の下書き生成</h3>
                 <p>
-                  経営計画書・補助事業計画書の全項目を出力。第19回公募要領に完全対応しています。
+                  経営計画書・補助事業計画書の全項目を出力。第20回公募要領に完全対応しています。
                 </p>
               </div>
               <div className="feature-card fi">
@@ -507,7 +507,7 @@ export default function LpPage() {
                   fontWeight: 500,
                 }}
               >
-                第19回限定・2026年4月30日まで有効
+                第20回限定・2026年12月15日まで有効
               </div>
               {/* App body */}
               <div
@@ -693,7 +693,7 @@ export default function LpPage() {
                       border: "1px solid #e5e7eb",
                     }}
                   >
-                    こんにちは。持続化補助金（第19回）の事業計画書作成をサポートするAIです。
+                    こんにちは。持続化補助金（第20回）の事業計画書作成をサポートするAIです。
                     <br />
                     <br />
                     ヒアリング情報をもとに、計画書の下書きを一緒に作り上げていきます。
@@ -1033,10 +1033,10 @@ export default function LpPage() {
               <div className="faq-item fi">
                 <p className="faq-q">
                   <span className="faq-q-mark">Q</span>
-                  第19回以外にも使えますか？
+                  第20回以外にも使えますか？
                 </p>
                 <p className="faq-a">
-                  現在は第19回に対応した設計です。次回以降の公募要領が発表され次第、順次対応してまいります。
+                  現在は第20回に対応した設計です。次回以降の公募要領が発表され次第、順次対応してまいります。
                 </p>
               </div>
               <div className="faq-item fi">
@@ -1064,7 +1064,7 @@ export default function LpPage() {
             今すぐ無料で試す →
           </a>
           <p className="cta-note">
-            補助金業務に携わる行政書士の方へ ／ 持続化補助金 第19回対応
+            補助金業務に携わる行政書士の方へ ／ 持続化補助金 第20回対応
           </p>
         </section>
 
