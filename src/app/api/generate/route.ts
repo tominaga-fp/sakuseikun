@@ -11,6 +11,14 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// 使用モデル。切り替え時はここだけ変更する
+const MODEL = "claude-sonnet-5";
+
+// 出力上限。Sonnet 5 は新しいトークナイザーを使い、同じ日本語文章でも
+// 旧モデル比で約30%多くトークンを消費するため、旧設定16,000から引き上げ
+// （計画書が途中で切れるのを防ぐ。実際に使わなければ課金されない）
+const MAX_TOKENS = 24000;
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -134,8 +142,13 @@ export async function POST(request: Request) {
     });
 
     const stream = await anthropic.messages.stream({
-      model: "claude-sonnet-4-5",
-      max_tokens: 16000,
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      // Sonnet 5 は thinking を省略すると自動でアダプティブ思考がONになる。
+      // 応答が遅くなりVercelの60秒制限に近づくため、まずは旧モデル(Sonnet 4.5)と
+      // 同じ挙動になるよう明示的に無効化する。
+      // 採点の甘さ改善のため思考を有効化する場合は adaptive に変更して検証すること。
+      thinking: { type: "disabled" },
       system: [
         {
           type: "text",
@@ -170,16 +183,20 @@ export async function POST(request: Request) {
           }
         }
         // トークン数を取得してログ記録
+        // input_tokens はキャッシュされなかった残りのみ。実際の入力総量は
+        // input + cache_creation + cache_read の合計になる
         const finalMessage = await stream.finalMessage();
-        const inputTokens = finalMessage.usage.input_tokens;
-        const outputTokens = finalMessage.usage.output_tokens;
+        const usage = finalMessage.usage;
 
         await supabase.from("usage_logs").insert({
           user_id: user.id,
           action,
           count_used: 0,
-          input_tokens: inputTokens,
-          output_tokens: outputTokens,
+          input_tokens: usage.input_tokens,
+          output_tokens: usage.output_tokens,
+          cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
+          cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
+          model: finalMessage.model,
           turn_count: turnCount,
         });
 
